@@ -669,6 +669,7 @@
       💡<span class="btn-badge" id="hintBadge">1</span>
     </button>
     <button id="rankBtn" class="hud-btn" title="Ver Ranking do Totem" aria-label="Ranking">🏆</button>
+    <button id="aboutBtn" class="hud-btn" title="Sobre o Projeto & Equipe" aria-label="Sobre">🎓</button>
     <button id="soundToggle" class="hud-btn" title="Ativar/Desativar Som" aria-label="Som">🔊</button>
     <button id="restartBtn" class="hud-btn" title="Reiniciar Partida" aria-label="Reiniciar">🔄</button>
   </div>
@@ -706,6 +707,13 @@
     <div class="win-stats">
       <span>🎯 <strong id="winMoves">0</strong> jogadas</span>
       <span>⏱️ <strong id="winTime">00:00</strong></span>
+    </div>
+
+    <!-- Avaliação Acadêmica de Memória & Precisão -->
+    <div style="margin-bottom: 12px; padding: 10px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 14px;">
+      <div id="winStars" style="font-size: 24px; line-height: 1.2;">⭐⭐⭐</div>
+      <div id="winTitleBadge" style="font-size: 13.5px; font-weight: 800; color: #0284c7; margin-top: 2px;">Mestre da Memória Araxaense</div>
+      <div id="winAccuracy" style="font-size: 11.5px; color: #64748b; font-weight: 600; margin-top: 2px;">Taxa de Precisão: 100%</div>
     </div>
 
     <!-- Registro de Nome para Ranking Solo -->
@@ -764,6 +772,42 @@
     <div style="display:flex; gap:8px; justify-content:center;">
       <button id="closeRankBtn" class="btn-primary" style="padding:8px 20px; font-size:13px;">Fechar</button>
       <button id="clearRankBtn" style="background:#f1f5f9; border:none; border-radius:999px; padding:8px 14px; font-size:12px; font-weight:700; color:#ef4444; cursor:pointer;">Limpar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Sobre o Projeto & Equipe (Apresentação Acadêmica) -->
+<div class="modal-overlay" id="aboutOverlay" role="dialog" aria-modal="true">
+  <div class="modal-card" style="max-width: 440px; text-align: left;">
+    <div style="text-align: center; margin-bottom: 12px;">
+      <div style="font-size: 32px; margin-bottom: 4px;">🎓</div>
+      <h2 style="font-size: 19px; font-weight: 900; color: #0f172a;">Memorize Ará — Conexão Araxá</h2>
+      <p style="font-size: 12px; color: #0284c7; font-weight: 700;">Projeto Acadêmico & Gamificação Social</p>
+    </div>
+
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 10px; font-size: 12px; line-height: 1.5; color: #334155;">
+      <strong style="color: #0f172a; font-size: 12.5px;">🎯 Proposta de Valor:</strong><br>
+      Plataforma gamificada desenvolvida para promover a conscientização cultural, turística e histórica de Araxá, alinhada diretamente aos seus <strong>8 eixos oficiais</strong> (Social, Educação, Saúde, Segurança, Esporte, Turismo, Cidadania e Cultura).
+    </div>
+
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 10px; font-size: 12px; line-height: 1.5; color: #334155;">
+      <strong style="color: #0f172a; font-size: 12.5px;">⚡ Tecnologias Utilizadas:</strong>
+      <ul style="margin-left: 18px; margin-top: 4px; font-size: 11.5px; color: #475569;">
+        <li><strong>HTML5 Semântico & CSS3 Moderno:</strong> Grid e Flexbox com design responsivo (celular, desktop e totens).</li>
+        <li><strong>JavaScript Vanilla (ES6+):</strong> Sem dependência de bibliotecas externas, carregamento instantâneo.</li>
+        <li><strong>Web Audio API:</strong> Síntese sonora procedural nativa no navegador.</li>
+        <li><strong>Web Storage API:</strong> Persistência local offline para o ranking Top 5.</li>
+        <li><strong>Git & GitHub Pages:</strong> Controle de versão e deploy contínuo em nuvem.</li>
+      </ul>
+    </div>
+
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 14px; font-size: 12px; line-height: 1.5; color: #334155;">
+      <strong style="color: #0f172a; font-size: 12.5px;">👥 Equipe do Projeto:</strong><br>
+      <span style="font-size: 11.5px; color: #475569;">Desenvolvido para apresentação acadêmica — <strong>Conexão Araxá</strong>.</span>
+    </div>
+
+    <div style="text-align: center;">
+      <button id="closeAboutBtn" class="btn-primary" style="padding: 9px 24px; font-size: 13px;">Fechar</button>
     </div>
   </div>
 </div>
@@ -1114,6 +1158,7 @@
   const hintBtn = document.getElementById('hintBtn');
   const hintBadge = document.getElementById('hintBadge');
   const rankBtn = document.getElementById('rankBtn');
+  const aboutBtn = document.getElementById('aboutBtn');
   const soundToggle = document.getElementById('soundToggle');
   const restartBtn = document.getElementById('restartBtn');
   const playAgainBtn = document.getElementById('playAgainBtn');
@@ -1127,6 +1172,9 @@
   const winOverlay = document.getElementById('winOverlay');
   const winMovesEl = document.getElementById('winMoves');
   const winTimeEl = document.getElementById('winTime');
+  const winStarsEl = document.getElementById('winStars');
+  const winTitleBadgeEl = document.getElementById('winTitleBadge');
+  const winAccuracyEl = document.getElementById('winAccuracy');
   const duelWinnerBox = document.getElementById('duelWinnerBox');
   const rankingInputBlock = document.getElementById('rankingInputBlock');
   const playerNameInput = document.getElementById('playerNameInput');
@@ -1142,6 +1190,9 @@
   const rankingTableBody = document.getElementById('rankingTableBody');
   const closeRankBtn = document.getElementById('closeRankBtn');
   const clearRankBtn = document.getElementById('clearRankBtn');
+
+  const aboutOverlay = document.getElementById('aboutOverlay');
+  const closeAboutBtn = document.getElementById('closeAboutBtn');
 
   const CONFIG = {
     easy:   { pairs: 6,  gridClass: 'grid-easy',   timeLimit: 30, wrongDelay: 600 },
@@ -1409,6 +1460,24 @@
     const finalTime = currentMode === 'time' ? (CONFIG[currentDiff].timeLimit - seconds) : seconds;
     winTimeEl.textContent = formatTime(finalTime);
 
+    // Métrica de Precisão e Estrelas para Apresentação
+    const minMoves = activeThemes.length || CONFIG[currentDiff].pairs;
+    const safeMoves = Math.max(minMoves, moves || 1);
+    const accuracy = Math.min(100, Math.round((minMoves / safeMoves) * 100));
+    winAccuracyEl.textContent = `Taxa de Precisão: ${accuracy}%`;
+
+    let stars = '⭐⭐⭐';
+    let titleBadge = '🏆 Mestre da Memória Araxaense';
+    if(accuracy < 55){
+      stars = '⭐';
+      titleBadge = '👏 Explorador da Conexão';
+    } else if(accuracy < 80){
+      stars = '⭐⭐';
+      titleBadge = '🌟 Guardião dos Eixos de Araxá';
+    }
+    winStarsEl.textContent = stars;
+    winTitleBadgeEl.textContent = titleBadge;
+
     if(currentMode === 'duel'){
       duelWinnerBox.style.display = 'block';
       rankingInputBlock.style.display = 'none';
@@ -1422,7 +1491,7 @@
 
     renderOfflineQR(qrSvg);
 
-    const shareText = `Zerei o Memorize Ará (${CONFIG[currentDiff].pairs * 2} cartas) no Conexão Araxá em ${moves} jogadas (${formatTime(finalTime)})! Venha bater meu recorde! #ConexãoAraxá`;
+    const shareText = `Zerei o Memorize Ará (${CONFIG[currentDiff].pairs * 2} cartas, ${accuracy}% de precisão) no Conexão Araxá em ${moves} jogadas (${formatTime(finalTime)})! #ConexãoAraxá`;
     shareWhatsappBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
 
     sound.win();
@@ -1486,6 +1555,48 @@
       renderLeaderboardModal();
     }
   });
+
+  /* Modal Sobre o Projeto & Equipe */
+  if(aboutBtn && aboutOverlay && closeAboutBtn){
+    aboutBtn.addEventListener('click', () => aboutOverlay.classList.add('show'));
+    closeAboutBtn.addEventListener('click', () => aboutOverlay.classList.remove('show'));
+  }
+
+  /* Fechar Modais ao Clicar Fora (Backdrop) */
+  [rankOverlay, aboutOverlay].forEach(modal => {
+    if(modal){
+      modal.addEventListener('click', (e) => {
+        if(e.target === modal) modal.classList.remove('show');
+      });
+    }
+  });
+
+  /* 🎓 Atalhos para a Apresentação na Faculdade */
+  // 1) Teclas Shift + D ou Shift + W ativam vitória instantânea para demonstração à banca
+  window.addEventListener('keydown', (e) => {
+    if(e.shiftKey && (e.key === 'D' || e.key === 'd' || e.key === 'W' || e.key === 'w')){
+      e.preventDefault();
+      handleGameWin();
+    }
+  });
+
+  // 2) Toque triplo na logo do topo ativa vitória para demonstração em telas touch
+  let logoClicks = 0;
+  let logoTimer = null;
+  const mainLogo = document.querySelector('header .logo');
+  if(mainLogo){
+    mainLogo.style.cursor = 'pointer';
+    mainLogo.addEventListener('click', () => {
+      logoClicks++;
+      clearTimeout(logoTimer);
+      if(logoClicks >= 3){
+        logoClicks = 0;
+        handleGameWin();
+      } else {
+        logoTimer = setTimeout(() => { logoClicks = 0; }, 800);
+      }
+    });
+  }
 
   /* Controles Gerais */
   soundToggle.addEventListener('click', () => {
