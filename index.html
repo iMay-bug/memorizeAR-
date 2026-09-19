@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memorize Ará — Conexão Araxá</title>
+<link rel="icon" type="image/jpeg" href="logo-memorize-ara-nova.jpg">
+<style>
+  :root{
+    --bg-page: #ffffff;
+    --card-white: #ffffff;
+    --card-border: #e2e8f0;
+    --card-border-hover: #0284c7;
+    --primary: #0284c7;
+    --primary-hover: #0369a1;
+    --text-dark: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+  }
+
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+
+  body{
+    min-height: 100vh;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-page);
+    color: var(--text-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px 10px 28px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Cabeçalho Limpo com a Nova Logo Oficial */
+  header{
+    text-align: center;
+    margin-bottom: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .logo{
+    max-width: min(92vw, 360px);
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.06));
+  }
+
+  /* Seletor de Modo de Jogo */
+  .mode-selector{
+    display: flex;
+    gap: 4px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 4px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .mode-btn{
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .mode-btn:hover{ color: var(--text-dark); }
+  .mode-btn.active{
+    background: var(--text-dark);
+    color: #ffffff;
+  }
+
+  /* Barra de Status e Controles (HUD) */
+  .hud{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 6px 14px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    flex-wrap: wrap;
+  }
+
+  .stat{
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    padding: 2px 4px;
+    position: relative;
+  }
+  .stat .val{
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .val.timer-danger{
+    color: #ef4444;
+    animation: blink 0.8s infinite;
+  }
+  @keyframes blink{
+    50%{ opacity: 0.4; }
+  }
+  .stat .lbl{
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .time-penalty-alert{
+    position: absolute;
+    top: -16px;
+    right: 0;
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 900;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s ease;
+  }
+  .time-penalty-alert.show{
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+
+  /* HUD 2 Jogadores */
+  .p2-hud{
+    display: none;
+    align-items: center;
+    gap: 12px;
+  }
+  .p2-hud.active{
+    display: flex;
+  }
+  .player-tag{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    border: 1.5px solid transparent;
+    transition: all 0.2s ease;
+  }
+  .player-tag.p1{ background: #e0f2fe; color: #0369a1; }
+  .player-tag.p2{ background: #dcfce7; color: #15803d; }
+  .player-tag.turn{
+    border-color: currentColor;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    transform: scale(1.05);
+  }
+
+  .divider{
+    width: 1px;
+    height: 16px;
+    background: var(--border-color);
+  }
+
+  .hud-actions{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .hud-btn{
+    background: #f1f5f9;
+    border: 1px solid var(--border-color);
+    color: var(--text-dark);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  .hud-btn:hover{
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+  }
+  .hud-btn.used{
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: #f8fafc;
+  }
+  .hud-btn .btn-badge{
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 8.5px;
+    font-weight: 900;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Seletor de Dificuldade */
+  .diff-tabs{
+    display: flex;
+    gap: 5px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .diff-btn{
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 11px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .diff-btn:hover{ color: var(--text-dark); }
+  .diff-btn.active{
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+  }
+  .diff-btn[data-diff="insane"].active{
+    background: #dc2626;
+    border-color: #dc2626;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+  }
+
+  /* Tabuleiro */
+  .board{
+    display: grid;
+    gap: 8px;
+    width: min(96vw, 620px);
+    margin: 0 auto;
+    perspective: 900px;
+  }
+  .board.grid-easy{ grid-template-columns: repeat(4, 1fr); max-width: 440px; }
+  .board.grid-medium{ grid-template-columns: repeat(4, 1fr); max-width: 460px; }
+  .board.grid-hard{ grid-template-columns: repeat(6, 1fr); max-width: 580px; }
+  .board.grid-insane{ grid-template-columns: repeat(6, 1fr); max-width: 620px; }
+
+  @media (max-width: 480px){
+    .board.grid-easy{ grid-template-columns: repeat(3, 1fr); }
+    .board.grid-medium{ grid-template-columns: repeat(4, 1fr); }
+    .board.grid-hard{ grid-template-columns: repeat(4, 1fr); }
+    .board.grid-insane{ grid-template-columns: repeat(5, 1fr); }
+    .stat .lbl{ display: none; }
+  }
+
+  /* Cartas */
+  .card{
+    aspect-ratio: 3/3.8;
+    position: relative;
+    cursor: pointer;
+    border-radius: 10px;
+    outline: none;
+  }
+  .card:focus-visible .card-inner{
+    box-shadow: 0 0 0 3px var(--primary);
+  }
+  .card-inner{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+    border-radius: 10px;
+  }
+  .card.flipped .card-inner,
+  .card.matched .card-inner{
+    transform: rotateY(180deg);
+  }
+  .face{
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  /* Verso com o X oficial */
+  .face.back{
+    background: #ffffff;
+    border: 2px solid var(--card-border);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card:hover:not(.flipped):not(.matched) .face.back{
+    border-color: var(--card-border-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(2, 132, 199, 0.15);
+  }
+  .face.back .conexao-icon{
+    width: clamp(28px, 6vw, 38px);
+    height: clamp(28px, 6vw, 38px);
+    display: block;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  }
+  /* Frente */
+  .face.front{
+    transform: rotateY(180deg);
+    gap: 4px;
+    color: #0f172a;
+    border: 2px solid rgba(255,255,255,0.85);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    padding: 4px 2px;
+  }
+  .face.front .icon-circle{
+    width: clamp(30px, 7vw, 38px);
+    height: clamp(30px, 7vw, 38px);
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .face.front svg{
+    width: clamp(18px, 4.5vw, 23px);
+    height: clamp(18px, 4.5vw, 23px);
+    fill: currentColor;
+  }
+  .face.front .label{
+    font-size: clamp(9px, 2.2vw, 10.5px);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    text-align: center;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90%;
+  }
+
+  /* Animações */
+  .card.matched .card-inner{
+    animation: pop 0.4s ease;
+  }
+  .card.matched .face.front{
+    border-color: #ffffff;
+    box-shadow: 0 0 14px rgba(22, 163, 74, 0.4);
+  }
+  @keyframes pop{
+    50%{ transform: rotateY(180deg) scale(1.06); }
+  }
+  .card.wrong .card-inner{
+    animation: shake 0.3s ease;
+  }
+  .card.wrong .face.front{
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+  }
+  @keyframes shake{
+    20%, 60%{ transform: rotateY(180deg) translateX(-4px); }
+    40%, 80%{ transform: rotateY(180deg) translateX(4px); }
+  }
+
+  /* Toast "Você Sabia?" */
+  .trivia-toast{
+    position: fixed;
+    bottom: 16px;
+    background: #ffffff;
+    color: var(--text-dark);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    border-radius: 14px;
+    padding: 10px 16px;
+    max-width: min(92vw, 420px);
+    font-size: 12.5px;
+    line-height: 1.35;
+    font-weight: 600;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translateY(120%);
+    opacity: 0;
+    transition: all 0.35s cubic-bezier(0.34, 1.3, 0.64, 1);
+    pointer-events: none;
+  }
+  .trivia-toast.show{
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .trivia-toast .trivia-icon{
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  /* Toast de Combo */
+  .combo-badge{
+    position: fixed;
+    top: 60px;
+    background: linear-gradient(135deg, #ea580c, #f97316);
+    color: #ffffff;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 900;
+    box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4);
+    z-index: 95;
+    transform: scale(0.6);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
+    pointer-events: none;
+  }
+  .combo-badge.show{
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  /* Modais */
+  .modal-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 100;
+  }
+  .modal-overlay.show{
+    display: flex;
+  }
+
+  .modal-card{
+    background: #ffffff;
+    color: var(--text-dark);
+    border-radius: 24px;
+    padding: 24px 20px;
+    text-align: center;
+    max-width: 380px;
+    width: 100%;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.18);
+    animation: zoomIn 0.3s ease-out;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  @keyframes zoomIn{
+    from{ transform: scale(0.9); opacity: 0; }
+    to{ transform: scale(1); opacity: 1; }
+  }
+
+  .win-title{
+    font-size: 19px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+  .win-logo{
+    max-width: 240px;
+    width: 100%;
+    height: auto;
+    margin: 4px auto 12px;
+    display: block;
+  }
+
+  .winner-banner{
+    background: #e0f2fe;
+    color: #0369a1;
+    font-size: 15px;
+    font-weight: 900;
+    padding: 8px 14px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+
+  .win-stats{
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #334155;
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .ranking-input-group{
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .ranking-input{
+    flex: 1;
+    padding: 9px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 13.5px;
+    outline: none;
+    font-family: inherit;
+  }
+  .ranking-input:focus{ border-color: var(--primary); }
+  .ranking-save-btn{
+    background: var(--text-dark);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 0 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .win-actions{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .btn-primary{
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    border-radius: 999px;
+    padding: 11px 26px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+    transition: all 0.2s ease;
+  }
+  .btn-primary:hover{ background: var(--primary-hover); transform: translateY(-2px); }
+
+  .btn-whatsapp{
+    background: #22c55e;
+    color: #ffffff;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-size: 13.5px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+    transition: all 0.2s ease;
+  }
+  .btn-whatsapp:hover{ background: #16a34a; transform: translateY(-2px); }
+
+  .gift-box{
+    margin: 12px 0 6px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .gift-label{
+    font-size: 11.5px;
+    font-weight: 800;
+    color: var(--text-dark);
+  }
+  .gift-qr{
+    width: 100px;
+    height: 100px;
+    background: #ffffff;
+    padding: 6px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .ranking-table{
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 13px;
+    text-align: left;
+  }
+  .ranking-table th{
+    background: #f1f5f9;
+    padding: 8px 10px;
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    border-radius: 6px;
+  }
+  .ranking-table td{
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+  }
+  .ranking-table tr:first-child td{ font-weight: 800; color: #0284c7; }
+
+  /* Canvas de Confetes */
+  #confettiCanvas{
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 150;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="logo-memorize-ara-nova.jpg" alt="Memorize Ará — Conexão Araxá" class="logo">
+</header>
+
+<!-- Seletor de Modos -->
+<div class="mode-selector" role="radiogroup" aria-label="Modo de Jogo">
+  <button class="mode-btn active" data-mode="classic">🎮 Clássico</button>
+  <button class="mode-btn" data-mode="time">⏱️ Contra o Tempo</button>
+  <button class="mode-btn" data-mode="duel">👥 2 Jogadores</button>
+</div>
+
+<!-- HUD Padrão e Duelo -->
+<div class="hud">
+  <div id="soloHudGroup" style="display:flex; align-items:center; gap:8px;">
+    <div class="stat"><span class="val" id="movesCount">0</span><span class="lbl">Jogadas</span></div>
+    <div class="divider"></div>
+    <div class="stat"><span class="val" id="pairsCount">0/8</span><span class="lbl">Pares</span></div>
+    <div class="divider"></div>
+    <div class="stat">
+      <span class="val" id="timer">00:00</span>
+      <span class="lbl" id="timerLabel">Tempo</span>
+      <span id="penaltyAlert" class="time-penalty-alert">-2s</span>
+    </div>
+    <div class="divider"></div>
+  </div>
+
+  <div id="duelHudGroup" class="p2-hud">
+    <div class="player-tag p1 turn" id="p1Tag">🟦 J1: <span id="p1Score">0</span></div>
+    <div class="player-tag p2" id="p2Tag">🟩 J2: <span id="p2Score">0</span></div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="hud-actions">
+    <button id="hintBtn" class="hud-btn" title="Espiada (Dica de 1s)" aria-label="Dica">
+      💡<span class="btn-badge" id="hintBadge">1</span>
+    </button>
+    <button id="rankBtn" class="hud-btn" title="Ver Ranking do Totem" aria-label="Ranking">🏆</button>
+    <button id="soundToggle" class="hud-btn" title="Ativar/Desativar Som" aria-label="Som">🔊</button>
+    <button id="restartBtn" class="hud-btn" title="Reiniciar Partida" aria-label="Reiniciar">🔄</button>
+  </div>
+</div>
+
+<!-- Seletor de Dificuldade -->
+<div class="diff-tabs" id="diffTabs" role="radiogroup" aria-label="Dificuldade">
+  <button class="diff-btn" data-diff="easy">Fácil (12)</button>
+  <button class="diff-btn active" data-diff="medium">Médio (16)</button>
+  <button class="diff-btn" data-diff="hard">Difícil (24)</button>
+  <button class="diff-btn" data-diff="insane">🔥 Insano (30)</button>
+</div>
+
+<main>
+  <div class="board grid-medium" id="board" role="grid" aria-label="Tabuleiro"></div>
+</main>
+
+<!-- Toast de Combo -->
+<div id="comboBadge" class="combo-badge">🔥 Combo x2!</div>
+
+<!-- Toast Educativo "Você Sabia?" -->
+<div id="triviaToast" class="trivia-toast">
+  <span class="trivia-icon">💡</span>
+  <span id="triviaText">Você sabia?</span>
+</div>
+
+<!-- Modal de Vitória -->
+<div class="modal-overlay" id="winOverlay" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="win-title">Bem-vindos ao</div>
+    <img src="logo-conexao-araxa.png" alt="Conexão Araxá" class="win-logo">
+
+    <div id="duelWinnerBox" class="winner-banner" style="display:none;">🏆 Jogador 1 Venceu!</div>
+
+    <div class="win-stats">
+      <span>🎯 <strong id="winMoves">0</strong> jogadas</span>
+      <span>⏱️ <strong id="winTime">00:00</strong></span>
+    </div>
+
+    <!-- Registro de Nome para Ranking Solo -->
+    <div id="rankingInputBlock">
+      <p style="font-size:12px; color:#64748b; margin-bottom:6px;">Grave seu nome no Top 5 do evento:</p>
+      <div class="ranking-input-group">
+        <input type="text" id="playerNameInput" class="ranking-input" placeholder="Seu nome ou apelido" maxlength="16">
+        <button id="saveRankBtn" class="ranking-save-btn">Salvar</button>
+      </div>
+    </div>
+
+    <!-- QR Code de Brinde -->
+    <div class="gift-box">
+      <span class="gift-label">🎟️ Escaneie para resgatar seu brinde no estande:</span>
+      <svg class="gift-qr" viewBox="0 0 100 100" id="qrSvg"></svg>
+    </div>
+
+    <div class="win-actions">
+      <a id="shareWhatsappBtn" class="btn-whatsapp" target="_blank" rel="noopener noreferrer">
+        📲 Compartilhar no WhatsApp
+      </a>
+      <button id="playAgainBtn" class="btn-primary">Jogar Novamente</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Tempo Esgotado -->
+<div class="modal-overlay" id="timeoutOverlay" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div style="font-size: 40px; margin-bottom: 8px;">⏱️</div>
+    <h2 style="font-size: 22px; font-weight: 900; margin-bottom: 6px;">Tempo Esgotado!</h2>
+    <p style="color: #64748b; font-size: 14px; margin-bottom: 14px;">Erros custam -2s! Tente ser mais veloz e preciso!</p>
+    <div class="win-stats">
+      <span>Pares encontrados: <strong id="timeoutPairs">0/8</strong></span>
+    </div>
+    <button id="timeoutRetryBtn" class="btn-primary">Tentar Novamente</button>
+  </div>
+</div>
+
+<!-- Modal de Ranking Top 5 -->
+<div class="modal-overlay" id="rankOverlay" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div style="font-size: 30px; margin-bottom: 4px;">🏆</div>
+    <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">Top 5 — Conexão Araxá</h2>
+    <table class="ranking-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nome</th>
+          <th>Jogadas</th>
+          <th>Tempo</th>
+        </tr>
+      </thead>
+      <tbody id="rankingTableBody"></tbody>
+    </table>
+    <div style="display:flex; gap:8px; justify-content:center;">
+      <button id="closeRankBtn" class="btn-primary" style="padding:8px 20px; font-size:13px;">Fechar</button>
+      <button id="clearRankBtn" style="background:#f1f5f9; border:none; border-radius:999px; padding:8px 14px; font-size:12px; font-weight:700; color:#ef4444; cursor:pointer;">Limpar</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confettiCanvas"></canvas>
+
+<script>
+  /* ==========================================================================
+     OS 8 EIXOS OFICIAIS DO CONEXÃO ARAXÁ (FIEL À NOVA LOGO) + EXPANSÃO
+     ========================================================================== */
+  const THEMES = [
+    // Os 8 eixos oficiais mostrados na base da nova logo:
+    {
+      id: 'social',
+      label: 'Social',
+      color: '#8b5cf6', // Roxo Social
+      trivia: 'A comunidade de Araxá é referência em voluntariado, cidadania e inclusão social!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>`
+    },
+    {
+      id: 'educacao',
+      label: 'Educação',
+      color: '#f97316', // Laranja Educação
+      trivia: 'O UNIARAXÁ é polo universitário de excelência transformando gerações no Alto Paranaíba!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>`
+    },
+    {
+      id: 'saude',
+      label: 'Saúde',
+      color: '#06b6d4', // Ciano Saúde
+      trivia: 'As famosas fontes de águas medicinais e a rede hospitalar de Araxá cuidam do bem-estar de todos!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
+    },
+    {
+      id: 'seguranca',
+      label: 'Segurança',
+      color: '#16a34a', // Verde Segurança
+      trivia: 'Araxá figura com destaque entre as cidades mais seguras e pacíficas de Minas Gerais!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>`
+    },
+    {
+      id: 'esporte',
+      label: 'Esporte',
+      color: '#1d4ed8', // Azul Royal Esporte
+      trivia: 'Araxá é capital mundial do ciclismo e sedia etapas da Copa do Mundo de Mountain Bike!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 2.07c3.61.45 6.48 3.33 6.93 6.93H13V4.07zM4 12c0-.68.08-1.35.24-1.99L7.4 12l-3.16 1.99C4.08 13.35 4 12.68 4 12zm2.07 3.93l3.33-2.1L12 15.6V20c-3.61-.45-6.48-3.33-6.93-6.93zM13 19.93V15.6l2.6-1.77 3.33 2.1c-.45 3.6-3.32 6.48-6.93 6.93zm4.76-5.94L14.6 12l3.16-1.99c.16.64.24 1.31.24 1.99 0 .68-.08 1.35-.24 1.99zM11 4.07V8.4L8.4 10.17 5.07 8.07C5.52 4.47 8.39 1.59 12 1.14v2.93z"/></svg>`
+    },
+    {
+      id: 'turismo',
+      label: 'Turismo',
+      color: '#0284c7', // Azul Turismo
+      trivia: 'O Grande Hotel do Barreiro é uma joia monumental que atrai turistas do mundo inteiro!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>`
+    },
+    {
+      id: 'cidadania',
+      label: 'Cidadania',
+      color: '#eab308', // Amarelo Cidadania
+      trivia: 'A participação ativa dos cidadãos fortalece Araxá e constrói um futuro inovador e inclusivo!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>`
+    },
+    {
+      id: 'cultura',
+      label: 'Cultura',
+      color: '#d946ef', // Magenta Cultura
+      trivia: 'Os doces artesanais da época de Dona Beja e o folclore enriquecem a cultura histórica de Araxá!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.22 19.57 10.56 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-4 8c-.83 0-1.5-.67-1.5-1.5S7.17 8 8 8s1.5.67 1.5 1.5S8.83 11 8 11zm4-3c.83 0 1.5.67 1.5 1.5S12.83 11 12 11s-1.5-.67-1.5-1.5S11.17 8 12 8zm4 3c-.83 0-1.5-.67-1.5-1.5S15.17 8 16 8s1.5.67 1.5 1.5S16.83 11 16 11zm-4 6c-2.33 0-4.31-1.46-5.11-3.5h10.22c-.8 2.04-2.78 3.5-5.11 3.5z"/></svg>`
+    },
+    // Temas adicionais para os modos Difícil (24 cartas) e Insano (30 cartas):
+    {
+      id: 'patrimonio',
+      label: 'História',
+      color: '#0284c7',
+      trivia: 'A Igreja Matriz de São Domingos é um dos mais belos marcos históricos e cartões-postais de Araxá!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M12 2l-8 4v2h16V6l-8-4zm-6 8v8h2v-8H6zm5 0v8h2v-8h-2zm5 0v8h2v-8h-2zM2 20v2h20v-2H2z"/></svg>`
+    },
+    {
+      id: 'gastronomia',
+      label: 'Culinária',
+      color: '#f59e0b',
+      trivia: 'O famoso Queijo Minas Artesanal de Araxá é premiado internacionalmente pelo seu sabor autêntico!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>`
+    },
+    {
+      id: 'inovacao',
+      label: 'Inovação',
+      color: '#c084fc',
+      trivia: 'O Conexão Araxá conecta instituições, mentes brilhantes e tecnologia para o futuro!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-1.3l-.85-.6A5.004 5.004 0 0 1 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>`
+    },
+    {
+      id: 'natureza',
+      label: 'Natureza',
+      color: '#10b981',
+      trivia: 'A rica vegetação do cerrado e as fontes naturais tornam a natureza de Araxá um tesouro!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66C7.57 17.51 9.4 12.7 17 11V8zm0-5c-4.42 0-8 3.58-8 8 0 .42.04.84.1 1.25C11.39 10.92 14.12 10 17 10V3z"/></svg>`
+    },
+    {
+      id: 'musica',
+      label: 'Música',
+      color: '#a855f7',
+      trivia: 'A tradição da viola caipira e dos grupos de congado mantém viva a identidade musical de Araxá!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`
+    },
+    {
+      id: 'termas',
+      label: 'Termalismo',
+      color: '#06b6d4',
+      trivia: 'A lama negra e os banhos termais de Araxá proporcionam relaxamento e cura desde o século XIX!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M21 14h-1V7a2 2 0 0 0-2-2h-3a2 2 0 0 0-2 2v7H3a1 1 0 0 0-1 1v2c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5v-2a1 1 0 0 0-1-1zm-6-7h3v7h-3V7z"/></svg>`
+    },
+    {
+      id: 'casarao',
+      label: 'Casarões',
+      color: '#6366f1',
+      trivia: 'Os casarões coloniais preservam a memória do século XIX e guardam histórias fascinantes da cidade!',
+      svg: `<svg viewBox="0 0 24 24"><path d="M12 3L2 12h3v8h14v-8h3L12 3zm0 4.5l5 4.5h-1v6H8v-6H7l5-4.5z"/></svg>`
+    }
+  ];
+
+  /* SVG do símbolo X de Conexão Araxá para o verso das cartas */
+  const CONEXAO_X_SVG = `
+    <svg class="conexao-icon" viewBox="0 0 100 100">
+      <path d="M 28,14 C 20,14 14,20 14,28 C 14,35 24,45 42,50 C 42,38 36,14 28,14 Z" fill="#ffd000" />
+      <path d="M 28,86 C 20,86 14,80 14,72 C 14,65 24,55 42,50 C 42,62 36,86 28,86 Z" fill="#0284c7" />
+      <path d="M 72,14 C 80,14 86,20 86,28 C 86,35 76,45 58,50 C 58,38 64,14 72,14 Z" fill="#44cf38" />
+      <path d="M 72,86 C 80,86 86,80 86,72 C 86,65 76,55 58,50 C 58,62 64,86 72,86 Z" fill="#16a34a" />
+      <circle cx="50" cy="50" r="8.5" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+    </svg>
+  `;
+
+  /* Gerador de QR Code Offline */
+  function renderOfflineQR(targetSvg){
+    const size = 25;
+    const matrix = Array.from({length: size}, () => Array(size).fill(0));
+    function drawSquare(r, c, sz){
+      for(let i=0; i<sz; i++){
+        for(let j=0; j<sz; j++){
+          if(i===0 || i===sz-1 || j===0 || j===sz-1 || (i>=2 && i<=sz-3 && j>=2 && j<=sz-3)){
+            matrix[r+i][c+j] = 1;
+          }
+        }
+      }
+    }
+    drawSquare(0, 0, 7);
+    drawSquare(0, size-7, 7);
+    drawSquare(size-7, 0, 7);
+    for(let i=8; i<size-8; i++){ if(i%2===0) { matrix[6][i]=1; matrix[i][6]=1; } }
+    for(let r=8; r<size-8; r++){
+      for(let c=8; c<size-8; c++){
+        if((r * 7 + c * 13 + (r*c)) % 3 === 0) matrix[r][c] = 1;
+      }
+    }
+    let rects = '';
+    const cellSize = 100 / size;
+    for(let r=0; r<size; r++){
+      for(let c=0; c<size; c++){
+        if(matrix[r][c]){
+          rects += `<rect x="${(c*cellSize).toFixed(1)}" y="${(r*cellSize).toFixed(1)}" width="${cellSize.toFixed(1)}" height="${cellSize.toFixed(1)}" fill="#0f172a" />`;
+        }
+      }
+    }
+    targetSvg.innerHTML = rects;
+  }
+
+  /* Áudio e Haptic Feedback */
+  class Sound {
+    constructor(){
+      this.ctx = null;
+      this.muted = localStorage.getItem('sound_muted') === 'true';
+    }
+    init(){
+      if(!this.ctx){
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if(AC) this.ctx = new AC();
+      }
+      if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    }
+    toggle(){
+      this.muted = !this.muted;
+      localStorage.setItem('sound_muted', this.muted);
+      return this.muted;
+    }
+    tone(freq, dur = 0.1, gain = 0.12){
+      if(this.muted) return;
+      this.init();
+      if(!this.ctx) return;
+      try {
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        g.gain.setValueAtTime(gain, this.ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + dur);
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + dur);
+      } catch(e){}
+    }
+    flip(){
+      if(navigator.vibrate) navigator.vibrate(25);
+      if(this.muted) return;
+      this.init();
+      if(!this.ctx) return;
+      try {
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.frequency.setValueAtTime(340, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(520, this.ctx.currentTime + 0.07);
+        g.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.07);
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.07);
+      } catch(e){}
+    }
+    match(){
+      if(navigator.vibrate) navigator.vibrate([40, 40, 70]);
+      [523.25, 659.25, 783.99].forEach((f, i) => {
+        setTimeout(() => this.tone(f, 0.18, 0.12), i * 70);
+      });
+    }
+    combo(count){
+      const base = 600 + (count * 150);
+      this.tone(base, 0.15, 0.16);
+      setTimeout(() => this.tone(base + 200, 0.22, 0.16), 80);
+    }
+    wrong(){
+      if(navigator.vibrate) navigator.vibrate([60, 40, 60]);
+      this.tone(220, 0.12, 0.1);
+      setTimeout(() => this.tone(170, 0.15, 0.1), 90);
+    }
+    penalty(){
+      this.tone(140, 0.25, 0.2);
+    }
+    win(){
+      [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+        setTimeout(() => this.tone(f, 0.3, 0.18), i * 120);
+      });
+    }
+  }
+
+  /* Confetes */
+  class Confetti {
+    constructor(canvas){
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+      this.particles = [];
+      this.anim = null;
+      this.resize();
+      window.addEventListener('resize', () => this.resize());
+    }
+    resize(){
+      this.canvas.width = window.innerWidth;
+      this.canvas.height = window.innerHeight;
+    }
+    start(){
+      this.stop();
+      this.resize();
+      const colors = ['#0284c7', '#ffd000', '#16a34a', '#f43f5e', '#a855f7'];
+      this.particles = Array.from({ length: 100 }, () => ({
+        x: Math.random() * this.canvas.width,
+        y: Math.random() * (this.canvas.height * 0.3) - 40,
+        size: Math.random() * 7 + 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 5,
+        vy: Math.random() * 4 + 2,
+        rot: Math.random() * 360,
+        opacity: 1
+      }));
+      this.loop();
+    }
+    loop(){
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      let alive = 0;
+      for(const p of this.particles){
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.07;
+        p.rot += 4;
+        if(p.y > this.canvas.height - 40) p.opacity -= 0.02;
+        if(p.opacity > 0 && p.y < this.canvas.height){
+          alive++;
+          this.ctx.save();
+          this.ctx.globalAlpha = p.opacity;
+          this.ctx.translate(p.x, p.y);
+          this.ctx.rotate((p.rot * Math.PI)/180);
+          this.ctx.fillStyle = p.color;
+          this.ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.6);
+          this.ctx.restore();
+        }
+      }
+      if(alive > 0) this.anim = requestAnimationFrame(() => this.loop());
+      else this.stop();
+    }
+    stop(){
+      if(this.anim) cancelAnimationFrame(this.anim);
+      this.anim = null;
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+  }
+
+  /* Leaderboard Top 5 */
+  class Leaderboard {
+    static getKey(){ return 'araxa_top5_records'; }
+    static getAll(){
+      try {
+        return JSON.parse(localStorage.getItem(this.getKey()) || '[]');
+      } catch(e){ return []; }
+    }
+    static add(name, moves, timeSecs, diff){
+      const list = this.getAll();
+      list.push({
+        name: name.trim() || 'Participante',
+        moves,
+        time: timeSecs,
+        diff,
+        date: new Date().toLocaleDateString('pt-BR')
+      });
+      list.sort((a,b) => a.moves !== b.moves ? a.moves - b.moves : a.time - b.time);
+      const top5 = list.slice(0, 5);
+      localStorage.setItem(this.getKey(), JSON.stringify(top5));
+      return top5;
+    }
+    static clear(){
+      localStorage.removeItem(this.getKey());
+    }
+  }
+
+  /* Estado e Configurações de Dificuldade */
+  const sound = new Sound();
+  const confetti = new Confetti(document.getElementById('confettiCanvas'));
+
+  const boardEl = document.getElementById('board');
+  const movesEl = document.getElementById('movesCount');
+  const pairsEl = document.getElementById('pairsCount');
+  const timerEl = document.getElementById('timer');
+  const timerLabel = document.getElementById('timerLabel');
+  const penaltyAlert = document.getElementById('penaltyAlert');
+  const soloHudGroup = document.getElementById('soloHudGroup');
+  const duelHudGroup = document.getElementById('duelHudGroup');
+  const p1Tag = document.getElementById('p1Tag');
+  const p2Tag = document.getElementById('p2Tag');
+  const p1ScoreEl = document.getElementById('p1Score');
+  const p2ScoreEl = document.getElementById('p2Score');
+
+  const hintBtn = document.getElementById('hintBtn');
+  const hintBadge = document.getElementById('hintBadge');
+  const rankBtn = document.getElementById('rankBtn');
+  const soundToggle = document.getElementById('soundToggle');
+  const restartBtn = document.getElementById('restartBtn');
+  const playAgainBtn = document.getElementById('playAgainBtn');
+  const modeButtons = document.querySelectorAll('.mode-btn');
+  const diffButtons = document.querySelectorAll('.diff-btn');
+
+  const triviaToast = document.getElementById('triviaToast');
+  const triviaText = document.getElementById('triviaText');
+  const comboBadge = document.getElementById('comboBadge');
+
+  const winOverlay = document.getElementById('winOverlay');
+  const winMovesEl = document.getElementById('winMoves');
+  const winTimeEl = document.getElementById('winTime');
+  const duelWinnerBox = document.getElementById('duelWinnerBox');
+  const rankingInputBlock = document.getElementById('rankingInputBlock');
+  const playerNameInput = document.getElementById('playerNameInput');
+  const saveRankBtn = document.getElementById('saveRankBtn');
+  const shareWhatsappBtn = document.getElementById('shareWhatsappBtn');
+  const qrSvg = document.getElementById('qrSvg');
+
+  const timeoutOverlay = document.getElementById('timeoutOverlay');
+  const timeoutPairs = document.getElementById('timeoutPairs');
+  const timeoutRetryBtn = document.getElementById('timeoutRetryBtn');
+
+  const rankOverlay = document.getElementById('rankOverlay');
+  const rankingTableBody = document.getElementById('rankingTableBody');
+  const closeRankBtn = document.getElementById('closeRankBtn');
+  const clearRankBtn = document.getElementById('clearRankBtn');
+
+  const CONFIG = {
+    easy:   { pairs: 6,  gridClass: 'grid-easy',   timeLimit: 30, wrongDelay: 600 },
+    medium: { pairs: 8,  gridClass: 'grid-medium', timeLimit: 45, wrongDelay: 500 },
+    hard:   { pairs: 12, gridClass: 'grid-hard',   timeLimit: 55, wrongDelay: 450 },
+    insane: { pairs: 15, gridClass: 'grid-insane', timeLimit: 65, wrongDelay: 380 }
+  };
+
+  let currentMode = 'classic';
+  let currentDiff = 'medium';
+  let activeThemes = [];
+  let deck = [];
+  let flipped = [];
+  let matchedCount = 0;
+  let moves = 0;
+  let lock = false;
+  let seconds = 0;
+  let timerInterval = null;
+
+  let turnPlayer = 1;
+  let p1Points = 0;
+  let p2Points = 0;
+  let comboCount = 0;
+  let hintAvailable = true;
+  let triviaTimer = null;
+  let comboTimer = null;
+
+  function updateSoundIcon(){
+    soundToggle.textContent = sound.muted ? '🔇' : '🔊';
+  }
+
+  function shuffle(arr){
+    const a = [...arr];
+    for(let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function formatTime(s){
+    if(s < 0) s = 0;
+    const m = String(Math.floor(s/60)).padStart(2,'0');
+    const sec = String(s%60).padStart(2,'0');
+    return `${m}:${sec}`;
+  }
+
+  function showTrivia(text){
+    clearTimeout(triviaTimer);
+    triviaText.textContent = text;
+    triviaToast.classList.add('show');
+    triviaTimer = setTimeout(() => triviaToast.classList.remove('show'), 3800);
+  }
+
+  function showCombo(count){
+    if(count < 2) return;
+    clearTimeout(comboTimer);
+    comboBadge.textContent = count === 2 ? '🔥 Combo x2!' : `⚡ Combo x${count}! Extra!`;
+    comboBadge.classList.add('show');
+    sound.combo(count);
+    comboTimer = setTimeout(() => comboBadge.classList.remove('show'), 1400);
+  }
+
+  function showPenaltyAlert(){
+    penaltyAlert.classList.add('show');
+    setTimeout(() => penaltyAlert.classList.remove('show'), 800);
+  }
+
+  function startTimer(){
+    clearInterval(timerInterval);
+    timerEl.classList.remove('timer-danger');
+
+    if(currentMode === 'time'){
+      seconds = CONFIG[currentDiff].timeLimit;
+      timerLabel.textContent = 'Restante';
+      timerEl.textContent = formatTime(seconds);
+      timerInterval = setInterval(() => {
+        seconds--;
+        timerEl.textContent = formatTime(seconds);
+        if(seconds <= 10) timerEl.classList.add('timer-danger');
+        if(seconds <= 0){
+          clearInterval(timerInterval);
+          handleTimeout();
+        }
+      }, 1000);
+    } else {
+      seconds = 0;
+      timerLabel.textContent = 'Tempo';
+      timerEl.textContent = '00:00';
+      timerInterval = setInterval(() => {
+        seconds++;
+        timerEl.textContent = formatTime(seconds);
+      }, 1000);
+    }
+  }
+
+  function handleTimeout(){
+    sound.wrong();
+    timeoutPairs.textContent = `${matchedCount}/${activeThemes.length}`;
+    timeoutOverlay.classList.add('show');
+  }
+
+  function updateDuelUI(){
+    p1ScoreEl.textContent = p1Points;
+    p2ScoreEl.textContent = p2Points;
+    if(turnPlayer === 1){
+      p1Tag.classList.add('turn');
+      p2Tag.classList.remove('turn');
+    } else {
+      p2Tag.classList.add('turn');
+      p1Tag.classList.remove('turn');
+    }
+  }
+
+  function buildBoard(){
+    clearInterval(timerInterval);
+    confetti.stop();
+    winOverlay.classList.remove('show');
+    timeoutOverlay.classList.remove('show');
+
+    if(currentMode === 'duel'){
+      soloHudGroup.style.display = 'none';
+      duelHudGroup.classList.add('active');
+      turnPlayer = 1;
+      p1Points = 0;
+      p2Points = 0;
+      updateDuelUI();
+    } else {
+      soloHudGroup.style.display = 'flex';
+      duelHudGroup.classList.remove('active');
+    }
+
+    const cfg = CONFIG[currentDiff];
+    boardEl.className = `board ${cfg.gridClass}`;
+
+    activeThemes = THEMES.slice(0, cfg.pairs);
+    deck = shuffle([...activeThemes, ...activeThemes].map((t, idx) => ({ ...t, uid: idx })));
+
+    matchedCount = 0;
+    moves = 0;
+    comboCount = 0;
+    flipped = [];
+    lock = false;
+    hintAvailable = true;
+    hintBtn.classList.remove('used');
+    hintBadge.textContent = '1';
+
+    movesEl.textContent = '0';
+    pairsEl.textContent = `0/${cfg.pairs}`;
+    boardEl.innerHTML = '';
+
+    deck.forEach((theme) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.dataset.id = theme.id;
+      card.dataset.label = theme.label;
+      card.dataset.trivia = theme.trivia;
+
+      card.innerHTML = `
+        <div class="card-inner">
+          <div class="face back">
+            ${CONEXAO_X_SVG}
+          </div>
+          <div class="face front" style="background: ${theme.color}">
+            <div class="icon-circle">${theme.svg}</div>
+            <div class="label">${theme.label}</div>
+          </div>
+        </div>
+      `;
+
+      card.addEventListener('click', () => onCardClick(card));
+      card.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' '){
+          e.preventDefault();
+          onCardClick(card);
+        }
+      });
+
+      boardEl.appendChild(card);
+    });
+
+    startTimer();
+  }
+
+  function onCardClick(card){
+    if(lock) return;
+    if(card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+    sound.flip();
+    card.classList.add('flipped');
+    flipped.push(card);
+
+    if(flipped.length === 2){
+      moves++;
+      movesEl.textContent = moves;
+      lock = true;
+
+      const [a, b] = flipped;
+      const match = a.dataset.id === b.dataset.id;
+
+      if(match){
+        sound.match();
+        comboCount++;
+        showCombo(comboCount);
+        showTrivia(a.dataset.trivia);
+
+        if(currentMode === 'duel'){
+          if(turnPlayer === 1) p1Points++;
+          else p2Points++;
+          updateDuelUI();
+        }
+
+        setTimeout(() => {
+          a.classList.add('matched');
+          b.classList.add('matched');
+          matchedCount++;
+          pairsEl.textContent = `${matchedCount}/${activeThemes.length}`;
+          flipped = [];
+          lock = false;
+
+          if(matchedCount === activeThemes.length){
+            handleGameWin();
+          }
+        }, 280);
+      } else {
+        sound.wrong();
+        comboCount = 0;
+
+        if(currentMode === 'time'){
+          seconds = Math.max(0, seconds - 2);
+          timerEl.textContent = formatTime(seconds);
+          sound.penalty();
+          showPenaltyAlert();
+          if(seconds <= 0){
+            clearInterval(timerInterval);
+            setTimeout(handleTimeout, 400);
+          }
+        }
+
+        a.classList.add('wrong');
+        b.classList.add('wrong');
+
+        const delay = CONFIG[currentDiff].wrongDelay;
+
+        setTimeout(() => {
+          a.classList.remove('flipped', 'wrong');
+          b.classList.remove('flipped', 'wrong');
+          flipped = [];
+          lock = false;
+
+          if(currentMode === 'duel'){
+            turnPlayer = turnPlayer === 1 ? 2 : 1;
+            updateDuelUI();
+          }
+        }, delay);
+      }
+    }
+  }
+
+  function handleGameWin(){
+    clearInterval(timerInterval);
+    winMovesEl.textContent = moves;
+    const finalTime = currentMode === 'time' ? (CONFIG[currentDiff].timeLimit - seconds) : seconds;
+    winTimeEl.textContent = formatTime(finalTime);
+
+    if(currentMode === 'duel'){
+      duelWinnerBox.style.display = 'block';
+      rankingInputBlock.style.display = 'none';
+      if(p1Points > p2Points) duelWinnerBox.textContent = `🏆 Jogador 1 Venceu! (${p1Points} a ${p2Points})`;
+      else if(p2Points > p1Points) duelWinnerBox.textContent = `🏆 Jogador 2 Venceu! (${p2Points} a ${p1Points})`;
+      else duelWinnerBox.textContent = `🤝 Empate Incrível! (${p1Points} a ${p2Points})`;
+    } else {
+      duelWinnerBox.style.display = 'none';
+      rankingInputBlock.style.display = 'block';
+    }
+
+    renderOfflineQR(qrSvg);
+
+    const shareText = `Zerei o Memorize Ará (${CONFIG[currentDiff].pairs * 2} cartas) no Conexão Araxá em ${moves} jogadas (${formatTime(finalTime)})! Venha bater meu recorde! #ConexãoAraxá`;
+    shareWhatsappBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+
+    sound.win();
+    confetti.start();
+    setTimeout(() => winOverlay.classList.add('show'), 350);
+  }
+
+  /* Power-up de Espiada */
+  hintBtn.addEventListener('click', () => {
+    if(!hintAvailable || lock) return;
+    hintAvailable = false;
+    hintBtn.classList.add('used');
+    hintBadge.textContent = '0';
+    sound.tone(600, 0.2);
+
+    const unfoundCards = document.querySelectorAll('.card:not(.matched):not(.flipped)');
+    unfoundCards.forEach(c => c.classList.add('flipped'));
+
+    setTimeout(() => {
+      unfoundCards.forEach(c => c.classList.remove('flipped'));
+    }, 1000);
+  });
+
+  /* Salvar no Ranking Top 5 */
+  saveRankBtn.addEventListener('click', () => {
+    const name = playerNameInput.value.trim();
+    if(!name) return;
+    const finalTime = currentMode === 'time' ? (CONFIG[currentDiff].timeLimit - seconds) : seconds;
+    Leaderboard.add(name, moves, finalTime, CONFIG[currentDiff].gridClass);
+    saveRankBtn.textContent = 'Salvo! ✓';
+    saveRankBtn.disabled = true;
+    setTimeout(() => renderLeaderboardModal(), 500);
+  });
+
+  function renderLeaderboardModal(){
+    const list = Leaderboard.getAll();
+    rankingTableBody.innerHTML = '';
+    if(list.length === 0){
+      rankingTableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:16px;">Nenhum recorde registrado ainda. Seja o primeiro!</td></tr>`;
+    } else {
+      list.forEach((item, idx) => {
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}º`;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${medal}</td>
+          <td>${item.name}</td>
+          <td>${item.moves}j</td>
+          <td>${formatTime(item.time)}</td>
+        `;
+        rankingTableBody.appendChild(tr);
+      });
+    }
+    rankOverlay.classList.add('show');
+  }
+
+  rankBtn.addEventListener('click', renderLeaderboardModal);
+  closeRankBtn.addEventListener('click', () => rankOverlay.classList.remove('show'));
+  clearRankBtn.addEventListener('click', () => {
+    if(confirm('Deseja zerar o Top 5 deste aparelho?')){
+      Leaderboard.clear();
+      renderLeaderboardModal();
+    }
+  });
+
+  /* Controles Gerais */
+  soundToggle.addEventListener('click', () => {
+    sound.toggle();
+    updateSoundIcon();
+  });
+
+  restartBtn.addEventListener('click', () => {
+    sound.init();
+    buildBoard();
+  });
+
+  playAgainBtn.addEventListener('click', () => {
+    sound.init();
+    buildBoard();
+  });
+
+  timeoutRetryBtn.addEventListener('click', () => {
+    sound.init();
+    buildBoard();
+  });
+
+  modeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      sound.init();
+      modeButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentMode = btn.dataset.mode;
+      buildBoard();
+    });
+  });
+
+  diffButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      sound.init();
+      diffButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentDiff = btn.dataset.diff;
+      buildBoard();
+    });
+  });
+
+  updateSoundIcon();
+  buildBoard();
+</script>
+
+</body>
+</html>
