@@ -1195,7 +1195,7 @@
   /* ==========================================================================
      GERENCIADOR DE RANKING E CADASTRO EM NUVEM (JSON COMPARTILHADO)
      ========================================================================== */
-  const CLOUD_BIN_URL = 'https://extendsclass.com/api/json-storage/bin/fafffac';
+  const CLOUD_BIN_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a0b96eab944638';
   const LOCAL_BACKUP_KEY = 'araxa_cloud_ranking_backup';
 
   class CloudRanking {
@@ -1211,8 +1211,8 @@
           { name: 'Prof. Avaliador', moves: 14, time: 30, stars: '⭐⭐⭐', accuracy: 92, date: '19/09/2026' }
         ],
         players: [
-          { name: 'Mayk (Desenvolvedor)', date: '19/09/2026 07:45' },
-          { name: 'Prof. Avaliador', date: '19/09/2026 07:46' }
+          { name: 'Mayk (Desenvolvedor)', date: '19/09/2026 08:30' },
+          { name: 'Prof. Avaliador', date: '19/09/2026 08:31' }
         ]
       };
     }
@@ -1225,16 +1225,16 @@
 
     static async getCloudData(){
       try {
-        const res = await fetch(`${CLOUD_BIN_URL}?t=${Date.now()}`, { cache: 'no-store' });
+        const res = await fetch(CLOUD_BIN_URL, { cache: 'no-store' });
         if(res.ok){
-          const data = await res.json();
-          if(data && Array.isArray(data.ranking)){
-            this.setLocalBackup(data);
-            return { data, isOnline: true };
+          const json = await res.json();
+          if(json && json.data && Array.isArray(json.data.ranking)){
+            this.setLocalBackup(json.data);
+            return { data: json.data, isOnline: true };
           }
         }
       } catch(e){
-        console.warn('Usando backup local:', e);
+        console.warn('Erro ao conectar na nuvem, usando backup local:', e);
       }
       return { data: this.getLocalBackup(), isOnline: false };
     }
@@ -1242,12 +1242,16 @@
     static async saveCloudData(data){
       this.setLocalBackup(data);
       try {
-        await fetch(CLOUD_BIN_URL, {
+        const payload = {
+          name: 'Memorize Ara - Conexao Araxa Ranking',
+          data: data
+        };
+        const res = await fetch(CLOUD_BIN_URL, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
+          body: JSON.stringify(payload)
         });
-        return true;
+        return res.ok;
       } catch(e){
         console.warn('Falha no upload para nuvem:', e);
         return false;
