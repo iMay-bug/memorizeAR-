@@ -39,7 +39,7 @@ Jogo da memória interativo desenvolvido especialmente para o evento **Conexão 
 1. **Cadastro de Boas-Vindas**: Ao abrir o site pela primeira vez, o jogador digita seu nome ou apelido e já fica conectado.
 2. **Badge do Jogador**: Exibido no cabeçalho (`👤 Jogador: [Nome] ✏️`), permitindo alterar o nome a qualquer momento.
 3. **Ranking Geral Compartilhado**:
-   - Armazenado em nuvem via API REST JSON (`extendsclass.com/api/json-storage/bin/fafffac`), visível para **todos os aparelhos e pessoas que abrirem o link**!
+   - Armazenado em nuvem via API REST JSON (`api.restful-api.dev/objects/ff808181a09d98f701a0b96eab944638`), com suporte nativo a CORS (`Access-Control-Allow-Origin: *`) e sem cache (`no-cache`), visível em tempo real para **todos os aparelhos e pessoas que abrirem o link**!
    - Aba **🏅 Melhores Pontuações**: Classificação global por jogadas e tempo.
    - Aba **👥 Cadastrados**: Lista de todas as pessoas que entraram no jogo com data/hora.
    - Botão **📥 Baixar arquivo ranking.json**: Exporta o arquivo JSON real para demonstração aos professores.
