@@ -594,31 +594,6 @@
   }
   .btn-whatsapp:hover{ background: #16a34a; transform: translateY(-2px); }
 
-  .gift-box{
-    margin: 12px 0 6px;
-    background: #f8fafc;
-    border: 1px dashed #cbd5e1;
-    border-radius: 14px;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-  }
-  .gift-label{
-    font-size: 11.5px;
-    font-weight: 800;
-    color: var(--text-dark);
-  }
-  .gift-qr{
-    width: 100px;
-    height: 100px;
-    background: #ffffff;
-    padding: 6px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-  }
-
   .ranking-table{
     width: 100%;
     border-collapse: collapse;
@@ -749,12 +724,6 @@
         <input type="text" id="playerNameInput" class="ranking-input" placeholder="Seu nome ou apelido" maxlength="16">
         <button id="saveRankBtn" class="ranking-save-btn">Salvar</button>
       </div>
-    </div>
-
-    <!-- QR Code de Brinde -->
-    <div class="gift-box">
-      <span class="gift-label">🎟️ Escaneie para resgatar seu brinde no estande:</span>
-      <svg class="gift-qr" viewBox="0 0 100 100" id="qrSvg"></svg>
     </div>
 
     <div class="win-actions">
@@ -1019,40 +988,6 @@
       <circle cx="50" cy="50" r="8.5" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
     </svg>
   `;
-
-  /* Gerador de QR Code Offline */
-  function renderOfflineQR(targetSvg){
-    const size = 25;
-    const matrix = Array.from({length: size}, () => Array(size).fill(0));
-    function drawSquare(r, c, sz){
-      for(let i=0; i<sz; i++){
-        for(let j=0; j<sz; j++){
-          if(i===0 || i===sz-1 || j===0 || j===sz-1 || (i>=2 && i<=sz-3 && j>=2 && j<=sz-3)){
-            matrix[r+i][c+j] = 1;
-          }
-        }
-      }
-    }
-    drawSquare(0, 0, 7);
-    drawSquare(0, size-7, 7);
-    drawSquare(size-7, 0, 7);
-    for(let i=8; i<size-8; i++){ if(i%2===0) { matrix[6][i]=1; matrix[i][6]=1; } }
-    for(let r=8; r<size-8; r++){
-      for(let c=8; c<size-8; c++){
-        if((r * 7 + c * 13 + (r*c)) % 3 === 0) matrix[r][c] = 1;
-      }
-    }
-    let rects = '';
-    const cellSize = 100 / size;
-    for(let r=0; r<size; r++){
-      for(let c=0; c<size; c++){
-        if(matrix[r][c]){
-          rects += `<rect x="${(c*cellSize).toFixed(1)}" y="${(r*cellSize).toFixed(1)}" width="${cellSize.toFixed(1)}" height="${cellSize.toFixed(1)}" fill="#0f172a" />`;
-        }
-      }
-    }
-    targetSvg.innerHTML = rects;
-  }
 
   /* Áudio e Haptic Feedback */
   class Sound {
@@ -1348,7 +1283,6 @@
   const playerNameInput = document.getElementById('playerNameInput');
   const saveRankBtn = document.getElementById('saveRankBtn');
   const shareWhatsappBtn = document.getElementById('shareWhatsappBtn');
-  const qrSvg = document.getElementById('qrSvg');
 
   const timeoutOverlay = document.getElementById('timeoutOverlay');
   const timeoutPairs = document.getElementById('timeoutPairs');
@@ -1680,8 +1614,6 @@
       duelWinnerBox.style.display = 'none';
       rankingInputBlock.style.display = 'block';
     }
-
-    renderOfflineQR(qrSvg);
 
     const shareText = `Zerei o Memorize Ará (${CONFIG[currentDiff].pairs * 2} cartas, ${accuracy}% de precisão) no Conexão Araxá em ${moves} jogadas (${formatTime(finalTime)})! #ConexãoAraxá`;
     shareWhatsappBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
