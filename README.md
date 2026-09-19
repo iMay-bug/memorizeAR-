@@ -26,6 +26,27 @@ Jogo da memória interativo desenvolvido especialmente para o evento **Conexão 
 
 ---
 
+## 🎓 Recursos Especiais para a Apresentação Acadêmica
+1. **Modal `🎓 Sobre o Projeto & Equipe`**: Botão direto no HUD explicando a proposta pedagógica, stack técnica (Vanilla JS, Web Audio API, Web Storage) e a equipe.
+2. **Avaliação por Estrelas & Precisão**: Exibição da taxa de acerto (`%`), estrelas (`⭐⭐⭐`) e título honorário (*Mestre da Memória Araxaense*) na tela de vitória.
+3. **Atalhos do Apresentador (Demonstração Imediata)**:
+   - `Shift + D` ou `Shift + W` no teclado dispara a tela de vitória instantânea com confetes e ranking para a banca.
+   - Toque triplo na logo do cabeçalho dispara a vitória em telas touch.
+
+---
+
+## ☁️ Cadastro Inicial e Ranking Global Compartilhado em Nuvem (JSON)
+1. **Cadastro de Boas-Vindas**: Ao abrir o site pela primeira vez, o jogador digita seu nome ou apelido e já fica conectado.
+2. **Badge do Jogador**: Exibido no cabeçalho (`👤 Jogador: [Nome] ✏️`), permitindo alterar o nome a qualquer momento.
+3. **Ranking Geral Compartilhado**:
+   - Armazenado em nuvem via API REST JSON (`extendsclass.com/api/json-storage/bin/fafffac`), visível para **todos os aparelhos e pessoas que abrirem o link**!
+   - Aba **🏅 Melhores Pontuações**: Classificação global por jogadas e tempo.
+   - Aba **👥 Cadastrados**: Lista de todas as pessoas que entraram no jogo com data/hora.
+   - Botão **📥 Baixar arquivo ranking.json**: Exporta o arquivo JSON real para demonstração aos professores.
+   - Modo de resiliência offline: Se estiver sem internet, usa backup em `localStorage`.
+
+---
+
 ## 🚀 Como Executar
 
 Por ser uma aplicação estática construída com HTML5, CSS3 e JavaScript puro:
