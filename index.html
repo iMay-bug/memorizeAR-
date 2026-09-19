@@ -100,6 +100,11 @@
     background: var(--text-dark);
     color: #ffffff;
   }
+  .mode-btn[data-mode="frenzy"].active{
+    background: linear-gradient(135deg, #f97316, #ef4444);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+  }
 
   /* Barra de Status e Controles (HUD) */
   .hud{
@@ -133,6 +138,10 @@
     color: #ef4444;
     animation: blink 0.8s infinite;
   }
+  .stat .val.timer-frozen{
+    color: #0284c7;
+    text-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
+  }
   @keyframes blink{
     50%{ opacity: 0.4; }
   }
@@ -157,6 +166,38 @@
   .time-penalty-alert.show{
     opacity: 1;
     transform: translateY(-4px);
+  }
+
+  .time-bonus-alert{
+    position: absolute;
+    top: -16px;
+    left: 0;
+    color: #16a34a;
+    font-size: 12px;
+    font-weight: 900;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s ease;
+  }
+  .time-bonus-alert.show{
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+
+  .combo-hud-stat{
+    background: #fff7ed;
+    border: 1px solid #ffedd5;
+    border-radius: 999px;
+    padding: 2px 8px !important;
+  }
+  .combo-hud-stat .val{
+    color: #ea580c !important;
+    animation: flamePulse 0.35s ease;
+  }
+  @keyframes flamePulse{
+    0%{ transform: scale(0.85); }
+    50%{ transform: scale(1.2); }
+    100%{ transform: scale(1); }
   }
 
   /* HUD 2 Jogadores */
@@ -271,6 +312,37 @@
     box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
   }
 
+  /* Banner do Modo Febre */
+  .fever-banner{
+    display: none;
+    background: linear-gradient(90deg, #f59e0b, #ea580c, #ef4444, #f59e0b);
+    background-size: 300% 100%;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
+    padding: 5px 16px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
+  }
+  .fever-banner.active{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    animation: feverSlideBg 2s linear infinite, feverBounce 0.4s ease;
+  }
+  @keyframes feverSlideBg{
+    0%{ background-position: 0% 50%; }
+    100%{ background-position: 100% 50%; }
+  }
+  @keyframes feverBounce{
+    0%{ transform: scale(0.7); opacity: 0; }
+    70%{ transform: scale(1.06); }
+    100%{ transform: scale(1); opacity: 1; }
+  }
+
   /* Tabuleiro */
   .board{
     display: grid;
@@ -278,6 +350,16 @@
     width: min(96vw, 620px);
     margin: 0 auto;
     perspective: 900px;
+    transition: all 0.3s ease;
+  }
+  .board.fever-mode{
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.45), 0 0 55px rgba(239, 68, 68, 0.25);
+    border-radius: 16px;
+    padding: 6px;
+  }
+  .board.fever-mode .card:not(.matched) .face.back{
+    border-color: #f59e0b;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.45);
   }
   .board.grid-easy{ grid-template-columns: repeat(4, 1fr); max-width: 440px; }
   .board.grid-medium{ grid-template-columns: repeat(4, 1fr); max-width: 460px; }
@@ -401,6 +483,76 @@
   @keyframes shake{
     20%, 60%{ transform: rotateY(180deg) translateX(-4px); }
     40%, 80%{ transform: rotateY(180deg) translateX(4px); }
+  }
+
+  /* Efeito Magnético (Power-up Ímã) */
+  .card.magnet-zap .card-inner{
+    animation: zapShake 0.25s infinite alternate;
+  }
+  .card.magnet-zap .face.back{
+    border-color: #06b6d4 !important;
+    box-shadow: 0 0 16px #06b6d4 !important;
+  }
+  @keyframes zapShake{
+    from{ transform: scale(1.05) rotate(-3deg); }
+    to{ transform: scale(1.05) rotate(3deg); }
+  }
+
+  /* Camada de Combos Flutuantes em 3D */
+  .floating-combo-layer{
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 130;
+    overflow: hidden;
+  }
+  .floating-combo-item{
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    animation: floatComboPop 1.15s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+  }
+  .floating-combo-item .combo-title{
+    font-size: clamp(16px, 4.5vw, 24px);
+    font-weight: 900;
+    background: linear-gradient(135deg, #f59e0b, #ea580c, #ef4444);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .floating-combo-item .combo-pts{
+    font-size: clamp(11px, 2.5vw, 13px);
+    font-weight: 800;
+    color: #15803d;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #bbf7d0;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-top: 2px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  @keyframes floatComboPop{
+    0%{
+      opacity: 0;
+      transform: translate(-50%, 10px) scale(0.6) rotate(-4deg);
+    }
+    18%{
+      opacity: 1;
+      transform: translate(-50%, -20px) scale(1.18) rotate(0deg);
+    }
+    60%{
+      opacity: 1;
+      transform: translate(-50%, -50px) scale(1);
+    }
+    100%{
+      opacity: 0;
+      transform: translate(-50%, -85px) scale(0.85);
+    }
   }
 
   /* Toast "Você Sabia?" */
@@ -640,13 +792,19 @@
 <!-- Seletor de Modos -->
 <div class="mode-selector" role="radiogroup" aria-label="Modo de Jogo">
   <button class="mode-btn active" data-mode="classic">🎮 Clássico</button>
+  <button class="mode-btn" data-mode="frenzy">🔥 Frenesi</button>
   <button class="mode-btn" data-mode="time">⏱️ Contra o Tempo</button>
   <button class="mode-btn" data-mode="duel">👥 2 Jogadores</button>
 </div>
 
+<!-- Banner do Modo Febre (Frenesi) -->
+<div id="feverBanner" class="fever-banner">🔥 MODO FEBRE ATIVADO! PONTOS 3X & TEMPO EXTRA! ⚡</div>
+
 <!-- HUD Padrão e Duelo -->
 <div class="hud">
   <div id="soloHudGroup" style="display:flex; align-items:center; gap:8px;">
+    <div class="stat"><span class="val" id="scoreCount">0</span><span class="lbl">Pontos</span></div>
+    <div class="divider"></div>
     <div class="stat"><span class="val" id="movesCount">0</span><span class="lbl">Jogadas</span></div>
     <div class="divider"></div>
     <div class="stat"><span class="val" id="pairsCount">0/8</span><span class="lbl">Pares</span></div>
@@ -654,9 +812,14 @@
     <div class="stat">
       <span class="val" id="timer">00:00</span>
       <span class="lbl" id="timerLabel">Tempo</span>
+      <span id="bonusAlert" class="time-bonus-alert">+4s</span>
       <span id="penaltyAlert" class="time-penalty-alert">-2s</span>
     </div>
-    <div class="divider"></div>
+    <div class="divider" id="comboDivider" style="display:none;"></div>
+    <div class="stat combo-hud-stat" id="comboHudStat" style="display:none;">
+      <span class="val" id="comboVal">🔥 x2</span>
+      <span class="lbl">Combo</span>
+    </div>
   </div>
 
   <div id="duelHudGroup" class="p2-hud">
@@ -668,6 +831,12 @@
   <div class="hud-actions">
     <button id="hintBtn" class="hud-btn" title="Espiada (Dica de 1s)" aria-label="Dica">
       💡<span class="btn-badge" id="hintBadge">1</span>
+    </button>
+    <button id="magnetBtn" class="hud-btn" title="Ímã Revelador de Par" aria-label="Ímã">
+      🧲<span class="btn-badge" id="magnetBadge">1</span>
+    </button>
+    <button id="freezeBtn" class="hud-btn" title="Congelar Tempo por 5s" aria-label="Congelar">
+      ❄️<span class="btn-badge" id="freezeBadge">1</span>
     </button>
     <button id="rankBtn" class="hud-btn" title="Ver Ranking do Totem" aria-label="Ranking">🏆</button>
     <button id="aboutBtn" class="hud-btn" title="Sobre o Projeto & Equipe" aria-label="Sobre">🎓</button>
@@ -687,6 +856,9 @@
 <main>
   <div class="board grid-medium" id="board" role="grid" aria-label="Tabuleiro"></div>
 </main>
+
+<!-- Camada de Combos Flutuantes -->
+<div id="floatingComboLayer" class="floating-combo-layer"></div>
 
 <!-- Toast de Combo -->
 <div id="comboBadge" class="combo-badge">🔥 Combo x2!</div>
@@ -708,6 +880,11 @@
     <div class="win-stats">
       <span>🎯 <strong id="winMoves">0</strong> jogadas</span>
       <span>⏱️ <strong id="winTime">00:00</strong></span>
+    </div>
+
+    <div class="win-stats" style="margin-top: -6px; margin-bottom: 12px; background: #fff7ed; border-color: #fed7aa;">
+      <span>🏆 <strong id="winScore" style="color:#ea580c;">0</strong> pts</span>
+      <span>🔥 Maior Combo: <strong id="winMaxCombo" style="color:#ea580c;">x1</strong></span>
     </div>
 
     <!-- Avaliação Acadêmica de Memória & Precisão -->
@@ -787,12 +964,13 @@
           <tr>
             <th>#</th>
             <th>Nome</th>
-            <th>Jogadas</th>
+            <th>Pontos</th>
+            <th>Combo</th>
             <th>Tempo</th>
           </tr>
         </thead>
         <tbody id="rankingTableBody">
-          <tr><td colspan="4" style="text-align:center; padding:16px; color:#94a3b8;">Carregando ranking da nuvem...</td></tr>
+          <tr><td colspan="5" style="text-align:center; padding:16px; color:#94a3b8;">Carregando ranking da nuvem...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1048,9 +1226,36 @@
       });
     }
     combo(count){
-      const base = 600 + (count * 150);
-      this.tone(base, 0.15, 0.16);
-      setTimeout(() => this.tone(base + 200, 0.22, 0.16), 80);
+      const scale = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+      const idx = Math.min(Math.max(0, count - 1), scale.length - 2);
+      const f1 = scale[idx] || 600;
+      const f2 = scale[idx + 1] || 800;
+      this.tone(f1, 0.12, 0.16);
+      setTimeout(() => this.tone(f2, 0.2, 0.18), 70);
+      if(count >= 3){
+        setTimeout(() => this.tone(f2 * 1.25, 0.28, 0.2), 140);
+      }
+    }
+    fever(){
+      [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => {
+        setTimeout(() => this.tone(f, 0.16, 0.18), i * 50);
+      });
+    }
+    magnet(){
+      if(navigator.vibrate) navigator.vibrate([30, 30, 60]);
+      [440, 660, 880, 1200].forEach((f, i) => {
+        setTimeout(() => this.tone(f, 0.08, 0.15), i * 40);
+      });
+    }
+    freeze(){
+      if(navigator.vibrate) navigator.vibrate(50);
+      [1300, 1000, 750].forEach((f, i) => {
+        setTimeout(() => this.tone(f, 0.15, 0.15), i * 60);
+      });
+    }
+    bonusTime(){
+      this.tone(880, 0.1, 0.15);
+      setTimeout(() => this.tone(1320, 0.16, 0.15), 65);
     }
     wrong(){
       if(navigator.vibrate) navigator.vibrate([60, 40, 60]);
@@ -1210,7 +1415,7 @@
       }
     }
 
-    static async addRecord(name, moves, timeSecs, diff, stars, accuracy){
+    static async addRecord(name, moves, timeSecs, diff, stars, accuracy, score = 0, maxCombo = 1){
       const cleanName = (name || 'Participante').trim();
       const { data } = await this.getCloudData();
       if(!data.ranking) data.ranking = [];
@@ -1219,6 +1424,8 @@
         name: cleanName,
         moves: Number(moves),
         time: Number(timeSecs),
+        score: Number(score) || 0,
+        maxCombo: Number(maxCombo) || 1,
         diff: diff || 'médio',
         stars: stars || '⭐⭐⭐',
         accuracy: accuracy || 100,
@@ -1226,7 +1433,12 @@
       };
 
       data.ranking.push(newRecord);
-      data.ranking.sort((a, b) => a.moves !== b.moves ? a.moves - b.moves : a.time - b.time);
+      data.ranking.sort((a, b) => {
+        const scA = a.score || 0;
+        const scB = b.score || 0;
+        if(scB !== scA) return scB - scA;
+        return a.moves !== b.moves ? a.moves - b.moves : a.time - b.time;
+      });
       data.ranking = data.ranking.slice(0, 25);
 
       if(!data.players) data.players = [];
@@ -1248,9 +1460,16 @@
   const boardEl = document.getElementById('board');
   const movesEl = document.getElementById('movesCount');
   const pairsEl = document.getElementById('pairsCount');
+  const scoreEl = document.getElementById('scoreCount');
   const timerEl = document.getElementById('timer');
   const timerLabel = document.getElementById('timerLabel');
   const penaltyAlert = document.getElementById('penaltyAlert');
+  const bonusAlert = document.getElementById('bonusAlert');
+  const comboHudStat = document.getElementById('comboHudStat');
+  const comboDivider = document.getElementById('comboDivider');
+  const comboVal = document.getElementById('comboVal');
+  const feverBanner = document.getElementById('feverBanner');
+  const floatingComboLayer = document.getElementById('floatingComboLayer');
   const soloHudGroup = document.getElementById('soloHudGroup');
   const duelHudGroup = document.getElementById('duelHudGroup');
   const p1Tag = document.getElementById('p1Tag');
@@ -1260,6 +1479,10 @@
 
   const hintBtn = document.getElementById('hintBtn');
   const hintBadge = document.getElementById('hintBadge');
+  const magnetBtn = document.getElementById('magnetBtn');
+  const magnetBadge = document.getElementById('magnetBadge');
+  const freezeBtn = document.getElementById('freezeBtn');
+  const freezeBadge = document.getElementById('freezeBadge');
   const rankBtn = document.getElementById('rankBtn');
   const aboutBtn = document.getElementById('aboutBtn');
   const soundToggle = document.getElementById('soundToggle');
@@ -1275,6 +1498,8 @@
   const winOverlay = document.getElementById('winOverlay');
   const winMovesEl = document.getElementById('winMoves');
   const winTimeEl = document.getElementById('winTime');
+  const winScoreEl = document.getElementById('winScore');
+  const winMaxComboEl = document.getElementById('winMaxCombo');
   const winStarsEl = document.getElementById('winStars');
   const winTitleBadgeEl = document.getElementById('winTitleBadge');
   const winAccuracyEl = document.getElementById('winAccuracy');
@@ -1311,10 +1536,10 @@
   const closeAboutBtn = document.getElementById('closeAboutBtn');
 
   const CONFIG = {
-    easy:   { pairs: 6,  gridClass: 'grid-easy',   timeLimit: 30, wrongDelay: 600 },
-    medium: { pairs: 8,  gridClass: 'grid-medium', timeLimit: 45, wrongDelay: 500 },
-    hard:   { pairs: 12, gridClass: 'grid-hard',   timeLimit: 55, wrongDelay: 450 },
-    insane: { pairs: 15, gridClass: 'grid-insane', timeLimit: 65, wrongDelay: 380 }
+    easy:   { pairs: 6,  gridClass: 'grid-easy',   timeLimit: 30, frenzyTime: 25, wrongDelay: 600 },
+    medium: { pairs: 8,  gridClass: 'grid-medium', timeLimit: 45, frenzyTime: 30, wrongDelay: 500 },
+    hard:   { pairs: 12, gridClass: 'grid-hard',   timeLimit: 55, frenzyTime: 35, wrongDelay: 450 },
+    insane: { pairs: 15, gridClass: 'grid-insane', timeLimit: 65, frenzyTime: 40, wrongDelay: 380 }
   };
 
   let currentMode = 'classic';
@@ -1324,6 +1549,8 @@
   let flipped = [];
   let matchedCount = 0;
   let moves = 0;
+  let currentScore = 0;
+  let maxCombo = 0;
   let lock = false;
   let seconds = 0;
   let timerInterval = null;
@@ -1333,6 +1560,11 @@
   let p2Points = 0;
   let comboCount = 0;
   let hintAvailable = true;
+  let magnetAvailable = true;
+  let freezeAvailable = true;
+  let isFrozen = false;
+  let isFeverMode = false;
+  let feverTimer = null;
   let triviaTimer = null;
   let comboTimer = null;
   let lastStars = '⭐⭐⭐';
@@ -1366,12 +1598,82 @@
   }
 
   function showCombo(count){
-    if(count < 2) return;
-    clearTimeout(comboTimer);
-    comboBadge.textContent = count === 2 ? '🔥 Combo x2!' : `⚡ Combo x${count}! Extra!`;
-    comboBadge.classList.add('show');
-    sound.combo(count);
-    comboTimer = setTimeout(() => comboBadge.classList.remove('show'), 1400);
+    if(count > maxCombo) maxCombo = count;
+
+    if(count >= 2){
+      comboHudStat.style.display = 'flex';
+      comboDivider.style.display = 'block';
+      comboVal.textContent = count === 2 ? '🔥 x2' : count === 3 ? '⚡ x3' : count === 4 ? '🚀 x4' : `💥 x${count}`;
+
+      clearTimeout(comboTimer);
+      comboBadge.textContent = count === 2 ? '🔥 COMBO x2!' : count === 3 ? '⚡ SUPER COMBO x3!' : count === 4 ? '🚀 MEGA COMBO x4!' : `💥 ULTRA COMBO x${count}!`;
+      comboBadge.classList.add('show');
+      sound.combo(count);
+      comboTimer = setTimeout(() => comboBadge.classList.remove('show'), 1400);
+
+      if((count >= 3 || currentMode === 'frenzy') && !isFeverMode){
+        activateFeverMode();
+      }
+    } else {
+      comboHudStat.style.display = 'none';
+      comboDivider.style.display = 'none';
+    }
+  }
+
+  function triggerFloatingCombo(cardA, cardB, count, ptsEarned){
+    if(!floatingComboLayer || !cardA || !cardB) return;
+    const rA = cardA.getBoundingClientRect();
+    const rB = cardB.getBoundingClientRect();
+    let midX = (rA.left + rB.left) / 2 + (rA.width / 2);
+    let midY = Math.min(rA.top, rB.top) + (rA.height / 2);
+
+    midX = Math.max(70, Math.min(window.innerWidth - 70, midX));
+    midY = Math.max(70, Math.min(window.innerHeight - 70, midY));
+
+    const item = document.createElement('div');
+    item.className = 'floating-combo-item';
+    item.style.left = `${midX}px`;
+    item.style.top = `${midY}px`;
+
+    let label = `+${ptsEarned} pts`;
+    if(count === 2) label = `🔥 COMBO x2!`;
+    else if(count === 3) label = `⚡ SUPER COMBO x3!`;
+    else if(count === 4) label = `🚀 MEGA COMBO x4!`;
+    else if(count >= 5) label = `💥 COMBO INSANO x${count}!`;
+
+    if(isFeverMode){
+      label = `✨ FEBRE 3X! ` + label;
+    }
+
+    item.innerHTML = `
+      <span class="combo-title">${label}</span>
+      <span class="combo-pts">+${ptsEarned} pts</span>
+    `;
+    floatingComboLayer.appendChild(item);
+
+    setTimeout(() => {
+      if(item.parentNode) item.parentNode.removeChild(item);
+    }, 1150);
+  }
+
+  function activateFeverMode(){
+    isFeverMode = true;
+    feverBanner.classList.add('active');
+    boardEl.classList.add('fever-mode');
+    sound.fever();
+    confetti.start();
+    setTimeout(() => confetti.stop(), 1800);
+
+    clearTimeout(feverTimer);
+    feverTimer = setTimeout(() => {
+      deactivateFeverMode();
+    }, 9000);
+  }
+
+  function deactivateFeverMode(){
+    isFeverMode = false;
+    feverBanner.classList.remove('active');
+    boardEl.classList.remove('fever-mode');
   }
 
   function showPenaltyAlert(){
@@ -1379,21 +1681,31 @@
     setTimeout(() => penaltyAlert.classList.remove('show'), 800);
   }
 
+  function showBonusAlert(sec){
+    bonusAlert.textContent = `+${sec}s`;
+    bonusAlert.classList.add('show');
+    sound.bonusTime();
+    setTimeout(() => bonusAlert.classList.remove('show'), 800);
+  }
+
   function startTimer(){
     clearInterval(timerInterval);
-    timerEl.classList.remove('timer-danger');
+    timerEl.classList.remove('timer-danger', 'timer-frozen');
 
-    if(currentMode === 'time'){
-      seconds = CONFIG[currentDiff].timeLimit;
-      timerLabel.textContent = 'Restante';
+    if(currentMode === 'time' || currentMode === 'frenzy'){
+      seconds = currentMode === 'frenzy' ? CONFIG[currentDiff].frenzyTime : CONFIG[currentDiff].timeLimit;
+      timerLabel.textContent = currentMode === 'frenzy' ? 'Frenesi' : 'Restante';
       timerEl.textContent = formatTime(seconds);
       timerInterval = setInterval(() => {
-        seconds--;
-        timerEl.textContent = formatTime(seconds);
-        if(seconds <= 10) timerEl.classList.add('timer-danger');
-        if(seconds <= 0){
-          clearInterval(timerInterval);
-          handleTimeout();
+        if(!isFrozen){
+          seconds--;
+          timerEl.textContent = formatTime(seconds);
+          if(seconds <= 10) timerEl.classList.add('timer-danger');
+          else timerEl.classList.remove('timer-danger');
+          if(seconds <= 0){
+            clearInterval(timerInterval);
+            handleTimeout();
+          }
         }
       }, 1000);
     } else {
@@ -1430,6 +1742,7 @@
     confetti.stop();
     winOverlay.classList.remove('show');
     timeoutOverlay.classList.remove('show');
+    deactivateFeverMode();
 
     if(currentMode === 'duel'){
       soloHudGroup.style.display = 'none';
@@ -1451,14 +1764,28 @@
 
     matchedCount = 0;
     moves = 0;
+    currentScore = 0;
+    maxCombo = 0;
     comboCount = 0;
+    showCombo(0);
     flipped = [];
     lock = false;
+    isFrozen = false;
+
     hintAvailable = true;
     hintBtn.classList.remove('used');
     hintBadge.textContent = '1';
 
+    magnetAvailable = true;
+    magnetBtn.classList.remove('used');
+    magnetBadge.textContent = '1';
+
+    freezeAvailable = true;
+    freezeBtn.classList.remove('used');
+    freezeBadge.textContent = '1';
+
     movesEl.textContent = '0';
+    scoreEl.textContent = '0';
     pairsEl.textContent = `0/${cfg.pairs}`;
     boardEl.innerHTML = '';
 
@@ -1519,6 +1846,23 @@
         showCombo(comboCount);
         showTrivia(a.dataset.trivia);
 
+        // Pontuação e Combos
+        let ptsEarned = 100 * comboCount;
+        if(isFeverMode) ptsEarned *= 3;
+        currentScore += ptsEarned;
+        scoreEl.textContent = currentScore;
+
+        // Bônus de Tempo no Modo Frenesi
+        if(currentMode === 'frenzy'){
+          const bonusSec = comboCount >= 2 ? 6 : 4;
+          seconds += bonusSec;
+          timerEl.textContent = formatTime(seconds);
+          showBonusAlert(bonusSec);
+        }
+
+        // Popups Flutuantes
+        triggerFloatingCombo(a, b, comboCount, ptsEarned);
+
         if(currentMode === 'duel'){
           if(turnPlayer === 1) p1Points++;
           else p2Points++;
@@ -1540,8 +1884,9 @@
       } else {
         sound.wrong();
         comboCount = 0;
+        showCombo(0);
 
-        if(currentMode === 'time'){
+        if(currentMode === 'time' || currentMode === 'frenzy'){
           seconds = Math.max(0, seconds - 2);
           timerEl.textContent = formatTime(seconds);
           sound.penalty();
@@ -1574,8 +1919,15 @@
 
   function handleGameWin(){
     clearInterval(timerInterval);
+    deactivateFeverMode();
     winMovesEl.textContent = moves;
-    const finalTime = currentMode === 'time' ? (CONFIG[currentDiff].timeLimit - seconds) : seconds;
+
+    let finalTime = seconds;
+    if(currentMode === 'time'){
+      finalTime = CONFIG[currentDiff].timeLimit - seconds;
+    } else if(currentMode === 'frenzy'){
+      finalTime = Math.max(1, (CONFIG[currentDiff].frenzyTime + (matchedCount * 4)) - seconds);
+    }
     winTimeEl.textContent = formatTime(finalTime);
 
     // Métrica de Precisão e Estrelas para Apresentação
@@ -1583,6 +1935,16 @@
     const safeMoves = Math.max(minMoves, moves || 1);
     const accuracy = Math.min(100, Math.round((minMoves / safeMoves) * 100));
     winAccuracyEl.textContent = `Taxa de Precisão: ${accuracy}%`;
+
+    // Pontuação Final com Bônus
+    let finalScore = currentScore;
+    if(currentMode === 'time' || currentMode === 'frenzy'){
+      finalScore += Math.max(0, seconds * 25);
+    }
+    finalScore += (accuracy * 10);
+    currentScore = finalScore;
+    winScoreEl.textContent = finalScore;
+    winMaxComboEl.textContent = `x${Math.max(1, maxCombo)}`;
 
     let stars = '⭐⭐⭐';
     let titleBadge = '🏆 Mestre da Memória Araxaense';
@@ -1615,7 +1977,7 @@
       rankingInputBlock.style.display = 'block';
     }
 
-    const shareText = `Zerei o Memorize Ará (${CONFIG[currentDiff].pairs * 2} cartas, ${accuracy}% de precisão) no Conexão Araxá em ${moves} jogadas (${formatTime(finalTime)})! #ConexãoAraxá`;
+    const shareText = `Fiz ${finalScore} pontos (Combo máx: x${Math.max(1, maxCombo)}, ${accuracy}% precisão) no Memorize Ará — Conexão Araxá! #ConexãoAraxá`;
     shareWhatsappBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
 
     sound.win();
@@ -1623,7 +1985,7 @@
     setTimeout(() => winOverlay.classList.add('show'), 350);
   }
 
-  /* Power-up de Espiada */
+  /* Power-up: Espiada de 1s */
   hintBtn.addEventListener('click', () => {
     if(!hintAvailable || lock) return;
     hintAvailable = false;
@@ -1639,6 +2001,58 @@
     }, 1000);
   });
 
+  /* Power-up: Ímã Revelador de Par */
+  magnetBtn.addEventListener('click', () => {
+    if(!magnetAvailable || lock) return;
+    const unmatchedCards = Array.from(document.querySelectorAll('.card:not(.matched):not(.flipped)'));
+    let targetA = null, targetB = null;
+    for(let i = 0; i < unmatchedCards.length; i++){
+      for(let j = i + 1; j < unmatchedCards.length; j++){
+        if(unmatchedCards[i].dataset.id === unmatchedCards[j].dataset.id){
+          targetA = unmatchedCards[i];
+          targetB = unmatchedCards[j];
+          break;
+        }
+      }
+      if(targetA) break;
+    }
+    if(!targetA || !targetB) return;
+
+    magnetAvailable = false;
+    magnetBtn.classList.add('used');
+    magnetBadge.textContent = '0';
+    sound.magnet();
+
+    targetA.classList.add('magnet-zap');
+    targetB.classList.add('magnet-zap');
+
+    setTimeout(() => {
+      targetA.classList.remove('magnet-zap');
+      targetB.classList.remove('magnet-zap');
+      onCardClick(targetA);
+      setTimeout(() => onCardClick(targetB), 250);
+    }, 450);
+  });
+
+  /* Power-up: Congelar Tempo por 5s */
+  freezeBtn.addEventListener('click', () => {
+    if(!freezeAvailable || isFrozen) return;
+    freezeAvailable = false;
+    freezeBtn.classList.add('used');
+    freezeBadge.textContent = '0';
+    isFrozen = true;
+    sound.freeze();
+    timerEl.classList.add('timer-frozen');
+    const prevLabel = timerLabel.textContent;
+    timerLabel.textContent = '❄️ Congelado';
+
+    setTimeout(() => {
+      isFrozen = false;
+      timerEl.classList.remove('timer-frozen');
+      timerLabel.textContent = prevLabel;
+    }, 5000);
+  });
+
   /* Salvar no Ranking Geral Compartilhado (Nuvem JSON) */
   saveRankBtn.addEventListener('click', async () => {
     const name = playerNameInput.value.trim() || localStorage.getItem('araxa_player_name') || 'Participante';
@@ -1649,8 +2063,13 @@
     saveRankBtn.textContent = 'Salvando na Nuvem...';
     saveRankBtn.disabled = true;
 
-    const finalTime = currentMode === 'time' ? (CONFIG[currentDiff].timeLimit - seconds) : seconds;
-    await CloudRanking.addRecord(name, moves, finalTime, CONFIG[currentDiff].gridClass, lastStars, lastAccuracy);
+    let finalTime = seconds;
+    if(currentMode === 'time'){
+      finalTime = CONFIG[currentDiff].timeLimit - seconds;
+    } else if(currentMode === 'frenzy'){
+      finalTime = Math.max(1, (CONFIG[currentDiff].frenzyTime + (matchedCount * 4)) - seconds);
+    }
+    await CloudRanking.addRecord(name, moves, finalTime, CONFIG[currentDiff].gridClass, lastStars, lastAccuracy, currentScore, maxCombo);
     saveRankBtn.textContent = 'Salvo na Nuvem! ✓';
 
     setTimeout(() => {
@@ -1677,15 +2096,18 @@
     const records = data.ranking || [];
     rankingTableBody.innerHTML = '';
     if(records.length === 0){
-      rankingTableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:16px;">Nenhum recorde registrado ainda. Seja o primeiro!</td></tr>`;
+      rankingTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:16px;">Nenhum recorde registrado ainda. Seja o primeiro!</td></tr>`;
     } else {
       records.forEach((item, idx) => {
         const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}º`;
         const tr = document.createElement('tr');
+        const sc = item.score ? `${item.score}` : `${item.moves * 100}`;
+        const cmb = item.maxCombo ? `🔥 x${item.maxCombo}` : '-';
         tr.innerHTML = `
           <td>${medal}</td>
           <td><strong>${item.name}</strong> <span style="font-size:10px; color:#64748b;">${item.stars || ''}</span></td>
-          <td>${item.moves}j</td>
+          <td><strong style="color:#0284c7;">${sc}</strong></td>
+          <td><strong style="color:#ea580c;">${cmb}</strong></td>
           <td>${formatTime(item.time)}</td>
         `;
         rankingTableBody.appendChild(tr);
