@@ -50,6 +50,29 @@
     filter: drop-shadow(0 2px 8px rgba(0,0,0,0.06));
   }
 
+  .player-badge{
+    margin-top: 4px;
+    margin-bottom: 5px;
+    font-size: 11.5px;
+    color: var(--text-dark);
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    padding: 3px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .player-badge:hover{
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+  }
+  .player-badge strong{
+    color: var(--primary);
+  }
+
   /* Seletor de Modo de Jogo */
   .mode-selector{
     display: flex;
@@ -634,6 +657,9 @@
 
 <header>
   <img src="logo-memorize-ara-nova.jpg" alt="Memorize Ará — Conexão Araxá" class="logo">
+  <button id="playerBadge" class="player-badge" title="Clique para alterar seu nome">
+    <span>👤</span> Jogador: <strong id="playerBadgeName">Cadastrar nome</strong> <span style="font-size:10px; opacity:0.6;">✏️</span>
+  </button>
 </header>
 
 <!-- Seletor de Modos -->
@@ -753,25 +779,80 @@
   </div>
 </div>
 
-<!-- Modal de Ranking Top 5 -->
+<!-- Modal de Boas-Vindas e Cadastro Inicial -->
+<div class="modal-overlay" id="welcomeOverlay" role="dialog" aria-modal="true">
+  <div class="modal-card" style="max-width: 370px;">
+    <div style="font-size: 38px; margin-bottom: 4px;">👋</div>
+    <h2 style="font-size: 20px; font-weight: 900; margin-bottom: 6px; color: #0f172a;">Bem-vindo ao Memorize Ará!</h2>
+    <p style="color: #64748b; font-size: 13px; line-height: 1.4; margin-bottom: 16px;">
+      Digite seu nome ou apelido para entrar na partida e registrar sua pontuação no <strong>ranking geral</strong>:
+    </p>
+    <form id="welcomeForm" style="display: flex; flex-direction: column; gap: 10px;">
+      <input type="text" id="welcomeNameInput" class="ranking-input" placeholder="Seu nome ou apelido" maxlength="20" required style="text-align: center; font-weight: 700; font-size: 15px; padding: 10px 14px;">
+      <button type="submit" class="btn-primary" style="width: 100%; padding: 11px 0;">Entrar e Jogar 🎮</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal de Ranking Geral (Cloud JSON) -->
 <div class="modal-overlay" id="rankOverlay" role="dialog" aria-modal="true">
-  <div class="modal-card">
-    <div style="font-size: 30px; margin-bottom: 4px;">🏆</div>
-    <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">Top 5 — Conexão Araxá</h2>
-    <table class="ranking-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Nome</th>
-          <th>Jogadas</th>
-          <th>Tempo</th>
-        </tr>
-      </thead>
-      <tbody id="rankingTableBody"></tbody>
-    </table>
-    <div style="display:flex; gap:8px; justify-content:center;">
-      <button id="closeRankBtn" class="btn-primary" style="padding:8px 20px; font-size:13px;">Fechar</button>
-      <button id="clearRankBtn" style="background:#f1f5f9; border:none; border-radius:999px; padding:8px 14px; font-size:12px; font-weight:700; color:#ef4444; cursor:pointer;">Limpar</button>
+  <div class="modal-card" style="max-width: 440px;">
+    <div style="font-size: 30px; margin-bottom: 2px;">🏆</div>
+    <h2 style="font-size: 19px; font-weight: 900; margin-bottom: 2px; color: #0f172a;">Ranking — Conexão Araxá</h2>
+    
+    <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: #16a34a; font-weight: 700; margin-bottom: 10px;">
+      <span style="width: 7px; height: 7px; background: #16a34a; border-radius: 50%; display: inline-block;"></span>
+      <span id="rankSyncStatus">Nuvem JSON Conectada (Compartilhado)</span>
+    </div>
+
+    <!-- Abas: Melhores Pontuações vs Jogadores Cadastrados -->
+    <div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 10px;">
+      <button id="tabRecordsBtn" class="diff-btn active" style="font-size: 11px; padding: 4px 12px;">🏅 Melhores Pontuações</button>
+      <button id="tabPlayersBtn" class="diff-btn" style="font-size: 11px; padding: 4px 12px;">👥 Cadastrados (<span id="playersCountBadge">0</span>)</button>
+    </div>
+
+    <!-- Tabela de Melhores Recordes -->
+    <div id="recordsView" style="max-height: 240px; overflow-y: auto;">
+      <table class="ranking-table" style="margin: 4px 0 10px;">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nome</th>
+            <th>Jogadas</th>
+            <th>Tempo</th>
+          </tr>
+        </thead>
+        <tbody id="rankingTableBody">
+          <tr><td colspan="4" style="text-align:center; padding:16px; color:#94a3b8;">Carregando ranking da nuvem...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tabela de Jogadores Cadastrados -->
+    <div id="playersView" style="display: none; max-height: 240px; overflow-y: auto;">
+      <table class="ranking-table" style="margin: 4px 0 10px;">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Jogador Cadastrado</th>
+            <th>Data</th>
+          </tr>
+        </thead>
+        <tbody id="playersTableBody">
+          <tr><td colspan="3" style="text-align:center; padding:16px; color:#94a3b8;">Carregando participantes...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Ações e Botão de Baixar JSON -->
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+      <div style="display:flex; gap:8px; justify-content:center;">
+        <button id="closeRankBtn" class="btn-primary" style="padding:8px 24px; font-size:13px;">Fechar</button>
+        <button id="refreshRankBtn" class="diff-btn" style="font-size:12px; font-weight:700;">🔄 Atualizar</button>
+      </div>
+      <button id="downloadJsonBtn" style="background:none; border:none; color:#0284c7; font-size:11.5px; font-weight:700; cursor:pointer; text-decoration:underline;">
+        📥 Baixar arquivo ranking.json da nuvem
+      </button>
     </div>
   </div>
 </div>
@@ -1111,30 +1192,113 @@
     }
   }
 
-  /* Leaderboard Top 5 */
-  class Leaderboard {
-    static getKey(){ return 'araxa_top5_records'; }
-    static getAll(){
+  /* ==========================================================================
+     GERENCIADOR DE RANKING E CADASTRO EM NUVEM (JSON COMPARTILHADO)
+     ========================================================================== */
+  const CLOUD_BIN_URL = 'https://extendsclass.com/api/json-storage/bin/fafffac';
+  const LOCAL_BACKUP_KEY = 'araxa_cloud_ranking_backup';
+
+  class CloudRanking {
+    static getLocalBackup(){
       try {
-        return JSON.parse(localStorage.getItem(this.getKey()) || '[]');
-      } catch(e){ return []; }
+        const raw = localStorage.getItem(LOCAL_BACKUP_KEY);
+        if(raw) return JSON.parse(raw);
+      } catch(e){}
+      return {
+        app: 'memorize_ara',
+        ranking: [
+          { name: 'Mayk (Desenvolvedor)', moves: 12, time: 24, stars: '⭐⭐⭐', accuracy: 100, date: '19/09/2026' },
+          { name: 'Prof. Avaliador', moves: 14, time: 30, stars: '⭐⭐⭐', accuracy: 92, date: '19/09/2026' }
+        ],
+        players: [
+          { name: 'Mayk (Desenvolvedor)', date: '19/09/2026 07:45' },
+          { name: 'Prof. Avaliador', date: '19/09/2026 07:46' }
+        ]
+      };
     }
-    static add(name, moves, timeSecs, diff){
-      const list = this.getAll();
-      list.push({
-        name: name.trim() || 'Participante',
-        moves,
-        time: timeSecs,
-        diff,
+
+    static setLocalBackup(data){
+      try {
+        localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(data));
+      } catch(e){}
+    }
+
+    static async getCloudData(){
+      try {
+        const res = await fetch(`${CLOUD_BIN_URL}?t=${Date.now()}`, { cache: 'no-store' });
+        if(res.ok){
+          const data = await res.json();
+          if(data && Array.isArray(data.ranking)){
+            this.setLocalBackup(data);
+            return { data, isOnline: true };
+          }
+        }
+      } catch(e){
+        console.warn('Usando backup local:', e);
+      }
+      return { data: this.getLocalBackup(), isOnline: false };
+    }
+
+    static async saveCloudData(data){
+      this.setLocalBackup(data);
+      try {
+        await fetch(CLOUD_BIN_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        return true;
+      } catch(e){
+        console.warn('Falha no upload para nuvem:', e);
+        return false;
+      }
+    }
+
+    static async registerPlayer(name){
+      if(!name) return;
+      const cleanName = name.trim();
+      if(!cleanName) return;
+
+      const { data } = await this.getCloudData();
+      if(!data.players) data.players = [];
+
+      const exists = data.players.some(p => p.name.toLowerCase() === cleanName.toLowerCase());
+      if(!exists){
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+        data.players.unshift({ name: cleanName, date: dateStr });
+        await this.saveCloudData(data);
+      }
+    }
+
+    static async addRecord(name, moves, timeSecs, diff, stars, accuracy){
+      const cleanName = (name || 'Participante').trim();
+      const { data } = await this.getCloudData();
+      if(!data.ranking) data.ranking = [];
+
+      const newRecord = {
+        name: cleanName,
+        moves: Number(moves),
+        time: Number(timeSecs),
+        diff: diff || 'médio',
+        stars: stars || '⭐⭐⭐',
+        accuracy: accuracy || 100,
         date: new Date().toLocaleDateString('pt-BR')
-      });
-      list.sort((a,b) => a.moves !== b.moves ? a.moves - b.moves : a.time - b.time);
-      const top5 = list.slice(0, 5);
-      localStorage.setItem(this.getKey(), JSON.stringify(top5));
-      return top5;
-    }
-    static clear(){
-      localStorage.removeItem(this.getKey());
+      };
+
+      data.ranking.push(newRecord);
+      data.ranking.sort((a, b) => a.moves !== b.moves ? a.moves - b.moves : a.time - b.time);
+      data.ranking = data.ranking.slice(0, 25);
+
+      if(!data.players) data.players = [];
+      if(!data.players.some(p => p.name.toLowerCase() === cleanName.toLowerCase())){
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+        data.players.unshift({ name: cleanName, date: dateStr });
+      }
+
+      await this.saveCloudData(data);
+      return data;
     }
   }
 
@@ -1186,10 +1350,24 @@
   const timeoutPairs = document.getElementById('timeoutPairs');
   const timeoutRetryBtn = document.getElementById('timeoutRetryBtn');
 
+  const playerBadge = document.getElementById('playerBadge');
+  const playerBadgeName = document.getElementById('playerBadgeName');
+  const welcomeOverlay = document.getElementById('welcomeOverlay');
+  const welcomeForm = document.getElementById('welcomeForm');
+  const welcomeNameInput = document.getElementById('welcomeNameInput');
+
   const rankOverlay = document.getElementById('rankOverlay');
+  const rankSyncStatus = document.getElementById('rankSyncStatus');
+  const tabRecordsBtn = document.getElementById('tabRecordsBtn');
+  const tabPlayersBtn = document.getElementById('tabPlayersBtn');
+  const playersCountBadge = document.getElementById('playersCountBadge');
+  const recordsView = document.getElementById('recordsView');
+  const playersView = document.getElementById('playersView');
   const rankingTableBody = document.getElementById('rankingTableBody');
+  const playersTableBody = document.getElementById('playersTableBody');
   const closeRankBtn = document.getElementById('closeRankBtn');
-  const clearRankBtn = document.getElementById('clearRankBtn');
+  const refreshRankBtn = document.getElementById('refreshRankBtn');
+  const downloadJsonBtn = document.getElementById('downloadJsonBtn');
 
   const aboutOverlay = document.getElementById('aboutOverlay');
   const closeAboutBtn = document.getElementById('closeAboutBtn');
@@ -1219,6 +1397,8 @@
   let hintAvailable = true;
   let triviaTimer = null;
   let comboTimer = null;
+  let lastStars = '⭐⭐⭐';
+  let lastAccuracy = 100;
 
   function updateSoundIcon(){
     soundToggle.textContent = sound.muted ? '🔇' : '🔊';
@@ -1478,6 +1658,14 @@
     winStarsEl.textContent = stars;
     winTitleBadgeEl.textContent = titleBadge;
 
+    lastAccuracy = accuracy;
+    lastStars = stars;
+    if(playerNameInput){
+      playerNameInput.value = localStorage.getItem('araxa_player_name') || '';
+      saveRankBtn.disabled = false;
+      saveRankBtn.textContent = 'Salvar no Ranking';
+    }
+
     if(currentMode === 'duel'){
       duelWinnerBox.style.display = 'block';
       rankingInputBlock.style.display = 'none';
@@ -1515,46 +1703,153 @@
     }, 1000);
   });
 
-  /* Salvar no Ranking Top 5 */
-  saveRankBtn.addEventListener('click', () => {
-    const name = playerNameInput.value.trim();
+  /* Salvar no Ranking Geral Compartilhado (Nuvem JSON) */
+  saveRankBtn.addEventListener('click', async () => {
+    const name = playerNameInput.value.trim() || localStorage.getItem('araxa_player_name') || 'Participante';
     if(!name) return;
-    const finalTime = currentMode === 'time' ? (CONFIG[currentDiff].timeLimit - seconds) : seconds;
-    Leaderboard.add(name, moves, finalTime, CONFIG[currentDiff].gridClass);
-    saveRankBtn.textContent = 'Salvo! ✓';
+    localStorage.setItem('araxa_player_name', name);
+    updatePlayerBadge(name);
+
+    saveRankBtn.textContent = 'Salvando na Nuvem...';
     saveRankBtn.disabled = true;
-    setTimeout(() => renderLeaderboardModal(), 500);
+
+    const finalTime = currentMode === 'time' ? (CONFIG[currentDiff].timeLimit - seconds) : seconds;
+    await CloudRanking.addRecord(name, moves, finalTime, CONFIG[currentDiff].gridClass, lastStars, lastAccuracy);
+    saveRankBtn.textContent = 'Salvo na Nuvem! ✓';
+
+    setTimeout(() => {
+      renderLeaderboardModal();
+    }, 450);
   });
 
-  function renderLeaderboardModal(){
-    const list = Leaderboard.getAll();
+  async function renderLeaderboardModal(){
+    rankOverlay.classList.add('show');
+    rankSyncStatus.textContent = 'Sincronizando com a Nuvem...';
+    rankSyncStatus.style.color = '#0284c7';
+
+    const { data, isOnline } = await CloudRanking.getCloudData();
+
+    if(isOnline){
+      rankSyncStatus.textContent = 'Nuvem JSON Conectada (Compartilhado)';
+      rankSyncStatus.style.color = '#16a34a';
+    } else {
+      rankSyncStatus.textContent = 'Modo Offline (Cache Local)';
+      rankSyncStatus.style.color = '#eab308';
+    }
+
+    // 1) Renderiza Melhores Pontuações
+    const records = data.ranking || [];
     rankingTableBody.innerHTML = '';
-    if(list.length === 0){
+    if(records.length === 0){
       rankingTableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:16px;">Nenhum recorde registrado ainda. Seja o primeiro!</td></tr>`;
     } else {
-      list.forEach((item, idx) => {
+      records.forEach((item, idx) => {
         const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}º`;
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${medal}</td>
-          <td>${item.name}</td>
+          <td><strong>${item.name}</strong> <span style="font-size:10px; color:#64748b;">${item.stars || ''}</span></td>
           <td>${item.moves}j</td>
           <td>${formatTime(item.time)}</td>
         `;
         rankingTableBody.appendChild(tr);
       });
     }
-    rankOverlay.classList.add('show');
+
+    // 2) Renderiza Jogadores Cadastrados
+    const players = data.players || [];
+    playersCountBadge.textContent = players.length;
+    playersTableBody.innerHTML = '';
+    if(players.length === 0){
+      playersTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#94a3b8; padding:16px;">Nenhum participante na lista.</td></tr>`;
+    } else {
+      players.forEach((p, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td><strong>${p.name}</strong></td>
+          <td style="font-size:11px; color:#64748b;">${p.date || 'Hoje'}</td>
+        `;
+        playersTableBody.appendChild(tr);
+      });
+    }
   }
+
+  // Alternância de Abas no Ranking
+  tabRecordsBtn.addEventListener('click', () => {
+    tabRecordsBtn.classList.add('active');
+    tabPlayersBtn.classList.remove('active');
+    recordsView.style.display = 'block';
+    playersView.style.display = 'none';
+  });
+
+  tabPlayersBtn.addEventListener('click', () => {
+    tabPlayersBtn.classList.add('active');
+    tabRecordsBtn.classList.remove('active');
+    recordsView.style.display = 'none';
+    playersView.style.display = 'block';
+  });
 
   rankBtn.addEventListener('click', renderLeaderboardModal);
   closeRankBtn.addEventListener('click', () => rankOverlay.classList.remove('show'));
-  clearRankBtn.addEventListener('click', () => {
-    if(confirm('Deseja zerar o Top 5 deste aparelho?')){
-      Leaderboard.clear();
-      renderLeaderboardModal();
-    }
+  refreshRankBtn.addEventListener('click', () => {
+    sound.tone(600, 0.1);
+    renderLeaderboardModal();
   });
+
+  // Baixar JSON Completo
+  downloadJsonBtn.addEventListener('click', async () => {
+    const { data } = await CloudRanking.getCloudData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ranking_conexao_araxa.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    sound.tone(800, 0.15);
+  });
+
+  /* Cadastro Inicial / Perfil do Jogador */
+  function updatePlayerBadge(name){
+    if(playerBadgeName){
+      playerBadgeName.textContent = name || 'Cadastrar nome';
+    }
+    if(playerNameInput){
+      playerNameInput.value = name || '';
+    }
+  }
+
+  welcomeForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = welcomeNameInput.value.trim();
+    if(!name) return;
+    localStorage.setItem('araxa_player_name', name);
+    updatePlayerBadge(name);
+    welcomeOverlay.classList.remove('show');
+    sound.tone(600, 0.15);
+    CloudRanking.registerPlayer(name);
+  });
+
+  playerBadge.addEventListener('click', () => {
+    welcomeNameInput.value = localStorage.getItem('araxa_player_name') || '';
+    welcomeOverlay.classList.add('show');
+    welcomeNameInput.focus();
+  });
+
+  // Verificar cadastro ao abrir o site
+  const savedPlayerName = localStorage.getItem('araxa_player_name');
+  if(savedPlayerName){
+    updatePlayerBadge(savedPlayerName);
+    CloudRanking.registerPlayer(savedPlayerName);
+  } else {
+    setTimeout(() => {
+      welcomeOverlay.classList.add('show');
+      welcomeNameInput.focus();
+    }, 400);
+  }
 
   /* Modal Sobre o Projeto & Equipe */
   if(aboutBtn && aboutOverlay && closeAboutBtn){
@@ -1563,10 +1858,12 @@
   }
 
   /* Fechar Modais ao Clicar Fora (Backdrop) */
-  [rankOverlay, aboutOverlay].forEach(modal => {
+  [rankOverlay, aboutOverlay, welcomeOverlay].forEach(modal => {
     if(modal){
       modal.addEventListener('click', (e) => {
-        if(e.target === modal) modal.classList.remove('show');
+        if(e.target === modal && modal !== welcomeOverlay){
+          modal.classList.remove('show');
+        }
       });
     }
   });
